@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "validator_report.schema.json",
+  "title": "ValidationMismatchReport",
+  "type": "object",
+  "required": ["status", "checks"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["PASS", "FAIL", "UNCERTAIN"]
+    },
+    "checks": {
+      "type": "object"
+    },
+    "message": {
+      "type": "string"
+    },
+    "attempt": {
+      "type": "integer",
+      "minimum": 1
+    }
+  },
+  "additionalProperties": true
+}

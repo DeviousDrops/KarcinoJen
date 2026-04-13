@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "register_extraction.schema.json",
+  "title": "RegisterExtraction",
+  "type": "object",
+  "required": ["peripheral", "register_name", "base_address", "offset", "bits"],
+  "properties": {
+    "peripheral": {
+      "type": "string",
+      "minLength": 1
+    },
+    "register_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "base_address": {
+      "type": "string",
+      "pattern": "^0x[0-9A-Fa-f]+$"
+    },
+    "offset": {
+      "type": "string",
+      "pattern": "^0x[0-9A-Fa-f]+$"
+    },
+    "bits": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "position", "width", "access"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "position": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "width": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "access": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "timing_constraints": {
+      "type": "array",
+      "items": {
+        "$ref": "timing_constraints.schema.json"
+      }
+    }
+  },
+  "additionalProperties": false
+}

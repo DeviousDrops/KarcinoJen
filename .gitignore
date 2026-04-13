@@ -1,0 +1,48 @@
+# OS artifacts
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor and IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment files
+.env
+.env.*
+
+# Python cache and virtual environments
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Node and package managers
+node_modules/
+npm-debug.log*
+yarn-*.log*
+pnpm-debug.log*
+
+# Build and coverage outputs
+build/
+dist/
+out/
+coverage/
+
+# Native build outputs
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+*.exe
+
+# Logs
+*.log

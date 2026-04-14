@@ -2,29 +2,29 @@
 
 ## Implementation Plan
 
-KarcinoJen builds verifiable C drivers from vendor MCU datasheet PDFs using a visual-first RAG pipeline plus deterministic CMSIS-SVD validation.
+KarcinoJen is a demo-first research prototype that generates verifiable C driver snippets from vendor MCU datasheet PDFs using a visual-first RAG pipeline and deterministic CMSIS-SVD checks.
 
 ## Project Goal
 
 Create an end-to-end system that:
 - Ingests raw datasheet PDFs without OCR.
 - Retrieves relevant register pages using visual and lexical hybrid retrieval.
-- Extracts register definitions and timing constraints with a VLM into strict JSON.
-- Validates register facts against CMSIS-SVD and timing facts with deterministic symbolic checks.
-- Synthesizes traceable C driver artifacts only from validated data.
+- Extracts register definitions (and optional timing constraints) with a VLM into strict JSON.
+- Validates core register facts against CMSIS-SVD with deterministic checks.
+- Synthesizes traceable C driver artifacts for a limited demo query set.
 
 ## Scope
 
 In scope:
-- Stage 1 to Stage 9 pipeline implementation.
-- Offline indexing and online query/extraction.
+- Stage 1 to Stage 9 minimal pipeline implementation for demo.
+- Offline indexing and online query/extraction for one MCU family.
 - Deterministic validator and bounded correction loop.
-- Timing constraint extraction and normalization for supported peripherals.
-- C code generation with provenance trace.
+- Register-focused C code generation with provenance trace.
 
 Out of scope (initial version):
 - Full HAL abstraction layers.
-- Auto-generated unit test frameworks for all MCUs.
+- Full production hardening and deployment SLOs.
+- Broad MCU coverage beyond selected demo targets.
 - Runtime flashing/integration on target hardware.
 
 ## Architecture Summary
@@ -41,85 +41,69 @@ Out of scope (initial version):
 | 8 | Online | Code synthesis agent | driver.h + driver.c + audit_trace.json |
 | 9 | Output | Verification and scoring | PASS@K and final deliverables |
 
-## Implementation Milestones
+## One-Week Demo Timeline
 
-### Milestone 0: Repo and Data Setup (Week 1)
+### Day 1: Dataset and Wiring
 Tasks:
-- Define repository layout and config conventions.
-- Add sample datasheets and CMSIS-SVD files for baseline MCUs.
-- Add JSON schemas for extractor and validator I/O.
+- Select one MCU family and 1 to 2 datasheets.
+- Add matching CMSIS-SVD files.
+- Confirm schema contracts and run a minimal dry run.
 
 Exit criteria:
-- `data/` and `schemas/` are versioned.
-- One dry-run sample pipeline config exists.
+- One datasheet and one SVD pair run through a smoke pipeline.
 
-### Milestone 1: Offline Visual Index Pipeline (Week 2)
+### Day 2: Offline Ingestion and Visual Index
 Tasks:
-- Implement PDF to page-image renderer at 300 dpi.
-- Integrate ColPali embedding job for page patch vectors.
-- Persist page entries in ChromaDB with metadata and image blob.
+- Implement PDF page rendering at 300 dpi.
+- Generate ColPali patch embeddings.
+- Store page entries in ChromaDB with metadata.
 
 Exit criteria:
-- A datasheet can be indexed end-to-end.
-- Re-indexing avoids duplicate page entries.
+- Selected datasheets are indexed and queryable.
 
-### Milestone 2: Hybrid Retrieval Service (Week 3)
+### Day 3: Hybrid Retrieval
 Tasks:
-- Implement late-interaction retrieval using query-to-patch MaxSim.
-- Implement BM25 keyword retrieval with `0x[0-9A-Fa-f]+` boost.
-- Fuse ranked lists with Reciprocal Rank Fusion.
+- Implement MaxSim late interaction.
+- Implement BM25 with hex token boost.
+- Fuse with Reciprocal Rank Fusion.
 
 Exit criteria:
-- Retrieval endpoint returns top-k pages and score traces.
-- Known register queries return expected pages in top 5.
+- Retrieval returns top-k pages for a curated query list.
 
-### Milestone 3: VLM Extraction Service (Week 4)
+### Day 4: VLM Extraction
 Tasks:
-- Build extraction prompt template with strict JSON-only output for registers and timing tables.
-- Add parser and schema validation for VLM responses.
-- Add `timing_constraints` schema tuple (`name`, `min`, `typ`, `max`, `unit`, `condition`).
-- Support LLaVA and GPT-4V provider adapters.
+- Add strict JSON extraction prompt.
+- Add parser and schema validation.
+- Support one open model path and one benchmark path.
 
 Exit criteria:
-- Extractor produces schema-valid register and timing JSON for baseline pages.
-- Non-JSON VLM outputs are safely rejected and logged.
+- Extractor returns schema-valid JSON on most curated samples.
 
-### Milestone 4: SVD Validator + CoVe Loop (Week 5)
+### Day 5: Validation and Re-prompt Loop
 Tasks:
-- Implement checks: address range, bit arithmetic/overlap, name fuzzy-match.
-- Implement timing checks: unit normalization, min/typ/max monotonicity, duplicate/conflict detection.
-- Emit structured mismatch reports with machine-readable reasons.
-- Implement bounded retry loop (max 3), then UNCERTAIN escalation.
+- Implement address, bit-field, and fuzzy-name checks.
+- Add mismatch report format.
+- Add CoVe retry loop up to 3 attempts.
 
 Exit criteria:
-- Validator catches injected errors reliably.
-- Timing mismatches are detected and reported with deterministic reasons.
-- CoVe loop improves correction success rate on baseline set.
+- Invalid outputs are rejected with explicit mismatch reports.
 
-### Milestone 5: Code Synthesis + Traceability (Week 6)
+### Day 6: Code Synthesis and Demo Script
 Tasks:
-- Generate `driver.h` and `driver.c` from validated JSON.
-- Emit `audit_trace.json` mapping each define to SVD entry and page source.
-- Add deterministic formatting and stable symbol naming.
+- Generate driver.h, driver.c, and audit_trace.json from validated JSON.
+- Build a single command demo flow for end-to-end run.
 
 Exit criteria:
-- Generated code compiles for baseline examples.
-- Every generated register symbol has provenance in audit trace.
+- End-to-end run succeeds on selected demo queries.
 
-### Milestone 6: Evaluation and Hardening (Week 7)
+### Day 7: Evaluation and Paper Assets
 Tasks:
-- Compute PASS@K by diffing generated addresses vs SVD truth.
-- Compute timing tuple F1 on labeled timing tables.
-- Add regression suite for retrieval/extraction/validation.
-- Measure manual effort reduction (time-to-first-driver) versus manual baseline.
-- Run 1000+ page datasheet benchmarks and report SLO conformance.
-- Add observability dashboards and failure triage runbook.
+- Compute PASS@K on curated benchmark set.
+- Collect qualitative error analysis examples.
+- Finalize figures/tables and reproducibility notes for the paper.
 
 Exit criteria:
-- Baseline PASS@K target met and reproducible.
-- Median time-to-first-driver improves by at least 40% versus manual baseline.
-- Large-datasheet SLO targets are met in benchmark runs.
-- Failure categories are measurable and actionable.
+- Demo results and artifacts are ready for publication submission.
 
 ## Proposed Repository Layout
 
@@ -164,19 +148,15 @@ Primary metric:
 Supporting metrics:
 - Retrieval Recall@K on labeled query-page pairs.
 - JSON validity rate from extractor.
-- Validator catch rate for synthetic perturbations.
-- Timing tuple F1 (`name`, `value`, `unit`, `condition`) on labeled pages.
+- Validator catch rate on curated fail cases.
 - CoVe recovery rate after first fail.
-- Median time-to-first-driver reduction versus manual workflow.
-- Large-datasheet performance: indexing throughput (pages/min) and online p95 latency.
-- UNCERTAIN rate and manual review turnaround.
+- Demo completion rate over target query set.
 
 Quality gates:
 - No code synthesis from unvalidated JSON.
 - Retry loop hard limit of 3.
-- Timing outputs that fail validation are blocked or marked UNCERTAIN.
 - Full provenance required for every emitted define.
-- Release candidate must satisfy agreed SLO thresholds.
+- End-to-end demo must run reproducibly on one machine.
 
 ## Risks and Mitigations
 
@@ -189,15 +169,16 @@ Quality gates:
 - Risk: timing table values extracted with wrong units or ambiguous conditions.
   Mitigation: unit normalization, monotonicity checks, and conflict detection before synthesis.
 
+- Risk: one-week schedule cannot support full production hardening.
+  Mitigation: prioritize a narrow demo query set and document known limitations.
+
 - Risk: silent propagation of wrong outputs.
   Mitigation: fail-closed behavior and UNCERTAIN routing.
 
 ## Immediate Next Steps
 
-1. Add baseline datasheet and SVD datasets in `data/`.
-2. Implement Stage 1-3 offline indexing first for a single MCU family.
-3. Build retrieval eval set before tuning Stage 4 scoring.
-4. Wire extraction, validation, and CoVe loop as a single orchestrated flow.
-5. Add code synthesis only after validation pass path is stable.
-6. Define manual-baseline measurement protocol and SLO benchmark harness for 1000+ page PDFs.
-7. Add CI workflows under `.github/workflows/`.
+1. Freeze a narrow benchmark set (10 to 20 queries) for one MCU family.
+2. Implement Stage 1-4 quickly and start collecting intermediate outputs.
+3. Add Stage 6-7 validation loop before widening query coverage.
+4. Keep Stage 8 synthesis minimal and deterministic for paper demonstration.
+5. Prepare paper-ready tables for PASS@K, recovery rate, and failure examples.

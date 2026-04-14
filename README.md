@@ -1,10 +1,10 @@
 # KarcinoJen
 
-Visual-first, validation-first pipeline to generate traceable MCU driver code from vendor datasheets.
+One-week research demo: visual-first, validation-first pipeline to generate traceable MCU driver code from vendor datasheets.
 
 ## Repository Status
 
-Project scaffold is ready. Architecture, implementation plan, and team split are documented.
+Project scaffold is ready for a one-week paper-oriented prototype. Architecture, implementation plan, and team split are documented.
 
 ## Documentation
 

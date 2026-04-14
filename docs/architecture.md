@@ -2,15 +2,21 @@
 
 ## 1. System Intent
 
-KarcinoJen is a visual-first register and timing extraction architecture that converts MCU datasheet pages into validated, traceable C driver artifacts.
+KarcinoJen is a visual-first research demo architecture that converts MCU datasheet pages into validated, traceable C driver artifacts for paper evaluation.
 
 Core principles:
 - No OCR dependency. Datasheets are processed as images.
 - Retrieval combines semantic visual matching and lexical precision.
 - Validation is deterministic and SVD-grounded.
-- Timing constraints are extracted as typed tuples and validated with deterministic rules.
-- Generation is fail-closed: no unvalidated data reaches code synthesis.
-- Every generated symbol is provenance-traceable.
+- Timing constraints are optional in the demo and validated when available.
+- Generation is fail-closed for core register outputs.
+- Every generated symbol in demo outputs is provenance-traceable.
+
+## 1.1 Demo Assumptions
+
+- Scope is one MCU family and a small curated query set.
+- Goal is proof-of-concept quality, not production coverage.
+- Preference is implementation simplicity over infrastructure completeness.
 
 ## 2. End-to-End Dataflow
 
@@ -22,7 +28,7 @@ Core principles:
 6. Extracted JSON is validated against CMSIS-SVD checks plus deterministic timing checks.
 7. Failures trigger grounded CoVe re-prompt with exact mismatch context (max 3 tries).
 8. Validated JSON feeds a synthesis node that generates C files and audit trace.
-9. PASS@K, timing tuple F1, and effort reduction metrics are computed for evaluation.
+9. PASS@K and a small set of demo metrics are computed for evaluation.
 
 ## 3. Stage Contracts
 
@@ -73,7 +79,7 @@ Fusion:
 Output:
 - Top-k page image candidates (typically 3 to 5) with ranking evidence.
 
-### Stage 5: VLM Register and Timing Extractor (online)
+### Stage 5: VLM Register Extractor (online)
 Input:
 - Retrieved page images and extraction prompt.
 
@@ -106,11 +112,10 @@ Output format (strict JSON-only):
 }
 ```
 
-### Stage 6: SVD and Symbolic Validator (online)
+### Stage 6: SVD Symbolic Validator (online)
 Input:
 - Extracted register JSON.
 - Target MCU CMSIS-SVD XML.
-- Optional extracted timing constraints.
 
 Checks in order:
 1. Address range check:
@@ -120,13 +125,12 @@ Checks in order:
    - No overlapping field ranges.
 3. Name fuzzy-match check:
    - Register name must match SVD within Levenshtein distance <= 2.
-4. Timing consistency check:
-  - Normalize all units to canonical units before comparison.
+4. Optional timing consistency check (demo extension):
+  - Normalize units before comparison when timing values are extracted.
   - Enforce monotonicity when values exist (`min <= typ <= max`).
-  - Detect duplicate timing tuples with conflicting values for the same `name` and `condition`.
 
 Output:
-- `ValidationResult` with register and timing pass/fail status.
+- `ValidationResult` with core register pass/fail status (timing status optional).
 - On fail: machine-readable mismatch report.
 
 ### Stage 7: CoVe Re-prompt Loop (fail path)
@@ -143,18 +147,17 @@ Termination:
 
 ### Stage 8: Code Synthesis Agent (online)
 Input:
-- Validated register and timing JSON only.
+- Validated register JSON only.
 
 Output artifacts:
 - `driver.h`: register addresses/bit masks and declarations.
 - `driver.c`: init and access functions.
-- `audit_trace.json`: mapping each define or timing constant to validation proof and source page.
+- `audit_trace.json`: mapping each define to validation proof and source page.
 
 ### Stage 9: Verified C Driver Output
 Verification:
 - Compute PASS@K by diffing every generated address in `driver.h` against SVD ground truth.
-- Compute timing tuple F1 against labeled timing-table ground truth.
-- Compute median time-to-first-driver reduction against manual baseline workflow.
+- Track extraction JSON validity and CoVe recovery rate on curated queries.
 
 Final deliverables:
 - `driver.h`
@@ -210,18 +213,16 @@ Pseudo-flow:
 4. If fail and attempts < 3, run CoVe re-prompt and retry.
 5. If pass, synthesize code + audit trace.
 6. If still fail after 3 attempts, emit UNCERTAIN.
-7. If query requires timing output and timing remains unverified, always emit UNCERTAIN.
+7. If timing extraction is enabled and remains unverified, mark timing as uncertain in report.
 
-## 6. Non-Functional Requirements
+## 6. Demo Constraints and Non-Functional Targets
 
 - Determinism: validator and synthesis outputs must be reproducible.
 - Traceability: every generated symbol must include provenance.
 - Safety: fail-closed by default; no silent fallback to unverified outputs.
-- Scalability: support datasheets up to 1500 pages with reusable offline indexes.
-- Throughput SLO: indexing throughput >= 20 pages/min on reference GPU at 300 dpi.
-- Latency SLO: retrieval p95 <= 1.5 s and retrieval+extraction+validation p95 <= 20 s for `k <= 5`.
-- Productivity KPI: median time-to-first-driver reduction >= 40% versus manual baseline.
-- Observability: stage-level logs, retry counts, and mismatch taxonomy.
+- Demo scale target: 1 to 2 datasheets and 10 to 20 benchmark queries.
+- Performance is best-effort for the demo; hard latency SLOs are out of scope.
+- Observability: keep stage logs and mismatch taxonomy sufficient for paper analysis.
 
 ## 7. Decision Log
 
@@ -231,14 +232,12 @@ Pseudo-flow:
 | ADR-002 | Hybrid retrieval with RRF | Balance semantic similarity with exact hex matches | Accepted |
 | ADR-003 | SVD as validation oracle | Deterministic guardrail against hallucinations | Accepted |
 | ADR-004 | Bounded CoVe retries (max 3) | Improve extraction while preventing infinite loops | Accepted |
-| ADR-005 | Provenance artifact required | Needed for safety/compliance workflows | Accepted |
-| ADR-006 | Typed timing tuple model + deterministic timing checks | Covers timing tables while keeping validation deterministic | Accepted |
-| ADR-007 | Explicit scale and latency SLO targets | Keeps system practical for large datasheets | Accepted |
+| ADR-005 | Provenance artifact required | Needed for paper-grade traceability and error analysis | Accepted |
+| ADR-006 | Timing extraction is optional in demo mode | Keeps one-week implementation feasible | Accepted |
+| ADR-007 | No hard production SLOs for paper demo | Prioritizes experimental validity over infra maturity | Accepted |
 
 ## 8. Open Questions
 
-- Which VLM should be production default for cost vs quality tradeoff?
-- What threshold should trigger immediate UNCERTAIN without retries?
-- Should retrieval use dynamic k based on query ambiguity?
-- Which timing constraints should be emitted as C constants versus only trace records?
-- Which MCU families define the first benchmark suite?
+- Which single MCU family gives the strongest demo signal for one-week scope?
+- What benchmark query set size balances effort and statistical value?
+- Should timing extraction be showcased in final paper or left as future work?

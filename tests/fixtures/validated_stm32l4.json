@@ -1,0 +1,58 @@
+[
+  {
+    "peripheral": "USART2",
+    "register_name": "USART_CR1",
+    "base_address": "0x40004400",
+    "offset": "0x00",
+    "bits": [
+      {"name": "UE",     "position": 0,  "width": 1, "access": "RW"},
+      {"name": "RE",     "position": 2,  "width": 1, "access": "RW"},
+      {"name": "TE",     "position": 3,  "width": 1, "access": "RW"},
+      {"name": "IDLEIE", "position": 4,  "width": 1, "access": "RW"},
+      {"name": "RXNEIE", "position": 5,  "width": 1, "access": "RW"},
+      {"name": "TCIE",   "position": 6,  "width": 1, "access": "RW"},
+      {"name": "TXEIE",  "position": 7,  "width": 1, "access": "RW"},
+      {"name": "M0",     "position": 12, "width": 1, "access": "RW"},
+      {"name": "OVER8",  "position": 15, "width": 1, "access": "RW"}
+    ],
+    "timing_constraints": [],
+    "source_page_id": "stm32l4_rm0351_p1238",
+    "source_file": "RM0351.pdf",
+    "validation_status": "PASS",
+    "validation_attempts": 1,
+    "mcu_family": "STM32L4"
+  },
+  {
+    "peripheral": "USART2",
+    "register_name": "USART_BRR",
+    "base_address": "0x40004400",
+    "offset": "0x0C",
+    "bits": [
+      {"name": "BRR", "position": 0, "width": 16, "access": "RW"}
+    ],
+    "timing_constraints": [],
+    "source_page_id": "stm32l4_rm0351_p1241",
+    "source_file": "RM0351.pdf",
+    "validation_status": "PASS",
+    "validation_attempts": 1,
+    "mcu_family": "STM32L4"
+  },
+  {
+    "peripheral": "GPIOA",
+    "register_name": "GPIOA_MODER",
+    "base_address": "0x48000000",
+    "offset": "0x00",
+    "bits": [
+      {"name": "MODER0",  "position": 0,  "width": 2, "access": "RW"},
+      {"name": "MODER1",  "position": 2,  "width": 2, "access": "RW"},
+      {"name": "MODER2",  "position": 4,  "width": 2, "access": "RW"},
+      {"name": "MODER15", "position": 30, "width": 2, "access": "RW"}
+    ],
+    "timing_constraints": [],
+    "source_page_id": "stm32l4_rm0351_p303",
+    "source_file": "RM0351.pdf",
+    "validation_status": "PASS",
+    "validation_attempts": 2,
+    "mcu_family": "STM32L4"
+  }
+]

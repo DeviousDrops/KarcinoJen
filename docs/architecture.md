@@ -18,6 +18,13 @@ Core principles:
 - Goal is proof-of-concept quality, not production coverage.
 - Preference is implementation simplicity over infrastructure completeness.
 
+## 1.2 Scientific Method Constraints
+
+- No model fine-tuning in this project.
+- All experiments use fixed model APIs and fixed prompts per configuration.
+- Research claim focuses on deterministic grounding and correction architecture, not model retraining.
+- Prompt and run configurations must be versioned for reproducibility.
+
 ## 2. End-to-End Dataflow
 
 1. PDF datasheet pages are rendered to 300 dpi images.
@@ -84,8 +91,8 @@ Input:
 - Retrieved page images and extraction prompt.
 
 Model options:
-- LLaVA for open deployment.
-- GPT-4V for benchmarking/high-accuracy runs.
+- GPT-4o (or equivalent frontier VLM API) as primary benchmark model.
+- LLaVA as optional open-model reference.
 
 Output format (strict JSON-only):
 ```json
@@ -158,6 +165,8 @@ Output artifacts:
 Verification:
 - Compute PASS@K by diffing every generated address in `driver.h` against SVD ground truth.
 - Track extraction JSON validity and CoVe recovery rate on curated queries.
+- Run three configurations: Vanilla VLM baseline, KarcinoJen without CoVe, Full KarcinoJen.
+- Report absolute and relative gains across configurations.
 
 Final deliverables:
 - `driver.h`
@@ -204,6 +213,17 @@ Final deliverables:
 }
 ```
 
+### BenchmarkRecord (MCU-Bench)
+```json
+{
+  "id": "mcu_bench_001",
+  "mcu_family": "STM32L4",
+  "query": "Extract USART2 register map",
+  "page_image": "pages/stm32l4_usart2_p123.png",
+  "ground_truth_json": "ground_truth/stm32l4_usart2_p123.json"
+}
+```
+
 ## 5. Orchestration Logic
 
 Pseudo-flow:
@@ -216,6 +236,40 @@ Pseudo-flow:
 7. If timing extraction is enabled and remains unverified, mark timing as uncertain in report.
 
 ## 6. Demo Constraints and Non-Functional Targets
+
+### 6.1 MCU-Bench Protocol
+
+- Dataset name: MCU-Bench.
+- Dataset size target: 15 to 20 benchmark records.
+- Each record contains page image, natural language query, and hand-verified ground-truth JSON.
+- Release includes annotation instructions and reproducibility manifest.
+- If page-image redistribution is restricted, provide reconstruction scripts and page references.
+
+### 6.2 Experimental Setups
+
+Baseline 1: Vanilla VLM
+- Image plus query plus simple prompt.
+- No deterministic validation in decision path.
+- No CoVe retry loop.
+
+Baseline 2: KarcinoJen without CoVe
+- Hybrid retrieval and SVD validator enabled.
+- Stage 7 disabled.
+
+Proposed: Full KarcinoJen
+- Hybrid retrieval plus SVD validator plus CoVe loop (max 3 retries).
+
+### 6.3 Qualitative Error Taxonomy
+
+- Address Drift: near-correct but invalid hexadecimal value.
+- Layout Confusion: table structure misread causing bit-field misalignment.
+- Context Bleed: extraction from neighboring peripheral context.
+
+For each category capture whether:
+- Stage 6 validator catches the error.
+- Stage 7 loop fixes the error within retry budget.
+
+### 6.4 Demo Constraints
 
 - Determinism: validator and synthesis outputs must be reproducible.
 - Traceability: every generated symbol must include provenance.
@@ -235,9 +289,13 @@ Pseudo-flow:
 | ADR-005 | Provenance artifact required | Needed for paper-grade traceability and error analysis | Accepted |
 | ADR-006 | Timing extraction is optional in demo mode | Keeps one-week implementation feasible | Accepted |
 | ADR-007 | No hard production SLOs for paper demo | Prioritizes experimental validity over infra maturity | Accepted |
+| ADR-008 | No fine-tuning in one-week timeline | Avoids derailment and keeps claim focused on architecture | Accepted |
+| ADR-009 | MCU-Bench benchmark release | Provides a reusable dataset contribution for the community | Accepted |
+| ADR-010 | Mandatory baseline and ablation comparison | Demonstrates causal impact of validation and CoVe stages | Accepted |
 
 ## 8. Open Questions
 
 - Which single MCU family gives the strongest demo signal for one-week scope?
 - What benchmark query set size balances effort and statistical value?
 - Should timing extraction be showcased in final paper or left as future work?
+- Which API model version should be frozen for final reproducibility run?

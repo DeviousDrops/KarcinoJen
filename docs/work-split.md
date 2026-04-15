@@ -1,151 +1,135 @@
-# Work Split and Git Plan for One-Week Demo (3 Members)
+# 3-Person Work Package Assignment (Async, No Split)
 
-## Team Structure
+## Objective
 
-- Member 1: Visual indexing and retrieval lead
-- Member 2: Extraction and validation lead
-- Member 3: Synthesis, QA, and integration lead
+This plan assigns exactly one complete work package to each member.
+Packages are selected by difficulty and expected time consumption.
+Each member can work asynchronously at any time without splitting ownership.
 
-## Responsibility Matrix
+## Working Rules
 
-| Area | Primary Owner | Secondary Owner |
-|---|---|---|
-| Stage 1 PDF rendering | Member 1 | Member 3 |
-| Stage 2 ColPali embeddings | Member 1 | Member 2 |
-| Stage 3 ChromaDB indexing | Member 1 | Member 3 |
-| Stage 4 Hybrid retrieval | Member 1 | Member 2 |
-| Stage 5 VLM extraction | Member 2 | Member 1 |
-| Stage 6 SVD validator | Member 2 | Member 3 |
-| Stage 7 CoVe retry loop | Member 2 | Member 3 |
-| Stage 8 Code synthesis agent | Member 3 | Member 2 |
-| Stage 9 PASS@K evaluation | Member 3 | Member 1 |
-| Demo benchmark query set and labeling | Member 3 | Member 1 |
-| CI sanity checks (minimal) | Member 3 | Member 1 |
+- One owner per package, end-to-end responsibility.
+- No package-level co-ownership; collaboration happens through artifact handoffs.
+- If an upstream artifact is missing, use mock fixtures and continue.
+- Keep progress in short reproducible runs (1 to 3 hours each).
+- Prioritize prompt engineering and paper evidence over feature breadth.
 
-## Deliverables Per Member
+## One Package Per Member
 
-### Member 1 (Indexing + Retrieval)
-Deliverables:
-- `src/ingest/` PDF page renderer at 300 dpi.
-- `src/index/` ColPali embedding pipeline.
-- `src/retrieval/` MaxSim and BM25+hex boost retrieval.
-- ChromaDB schema and index maintenance scripts.
-- Quick benchmark harness for selected demo queries.
+| Package | Owner | Difficulty | Estimated Time | Final Package Output |
+|---|---|---|---|---|
+| Package A: Data + Retrieval + Scoring Core | Member 1 | High | 12 to 14 hours | Benchmark set, retrieval top-k logs, and PASS@K summary draft |
+| Package B: Extraction + Validation + Error Analysis Core | Member 2 | High | 13 to 15 hours | Validator-passing JSON, CoVe retry logs, and taxonomy evidence |
+| Package C: Synthesis + Demo Core | Member 3 | Low-Medium | 6 to 8 hours | Driver artifacts and demo flow |
 
-Done criteria:
-- Datasheet indexing reproducible.
-- Top-k retrieval quality baseline achieved on labeled queries.
-- Retrieval works reliably on the curated demo query set.
+## Modular Breakdown: Member 1 (Package A)
 
-### Member 2 (Extraction + Validation)
-Deliverables:
-- `src/extractor/` strict JSON extraction prompt and adapters.
-- `src/validator/` deterministic SVD checks.
-- CoVe correction loop implementation with max 3 retries.
-- Structured mismatch reporting and retry telemetry.
+Do modules in order:
 
-Done criteria:
-- High JSON schema validity rate.
-- Validator catches synthetic error injections reliably.
-- Retry loop converges or exits with UNCERTAIN.
+| Module | Task | Estimated Time | Input | Output | Done Check |
+|---|---|---|---|---|---|
+| A1 | Freeze benchmark scope and IDs | 2h | Query ideas and datasheet page refs | Stable benchmark ID list | 10 to 20 benchmark items locked |
+| A2 | Build query and ground-truth skeleton files | 3h | A1 IDs | `data/mcu-bench/queries.jsonl`, skeleton `ground_truth.jsonl` | Every benchmark item has query text and metadata |
+| A3 | Run retrieval and collect top-k logs | 4h | A2 files and page assets or placeholders | Top-k retrieval logs per query | All benchmark queries return top-k results |
+| A4 | Freeze retrieval config and rerun manifest | 2h | A3 logs | Retrieval config notes and run manifest | Package A retrieval runs are reproducible |
+| A5 | Build scoring bundle and PASS@K summary draft | 1 to 3h | A4 outputs + validated/synthesis artifacts | PASS@K summary csv/json and scoring notes | Paper table ingestion is ready from Package A outputs |
 
-### Member 3 (Synthesis + QA + Integration)
-Deliverables:
-- `src/synthesis/` code generation for `driver.h` and `driver.c`.
-- `audit_trace.json` generation with per-symbol provenance.
-- `src/orchestration/` pipeline integration flow.
-- `tests/` integration/regression smoke tests and PASS@K runner.
-- Demo scripts and paper-ready result tables.
-- Minimal CI checks for lint/tests.
+## Modular Breakdown: Member 2 (Package B)
 
-Done criteria:
-- Generated code compiles for baseline targets.
-- PASS@K and trace completeness reports available in CI.
-- Demo run can be reproduced by another team member in one command flow.
+Do modules in order:
 
-## Day-Wise Work Plan (One Week)
+| Module | Task | Estimated Time | Input | Output | Done Check |
+|---|---|---|---|---|---|
+| B1 | Create extraction prompt v1 and schema harness | 3h | Sample page-query pairs | Prompt v1 and parser/check logs | End-to-end extraction run completes |
+| B2 | Iterate extraction prompts for validity | 4h | B1 baseline outputs | Prompt v2+ notes and JSON outputs | >=80 percent schema-valid JSON on sample set |
+| B3 | Implement validator checks and mismatch report | 3h | B2 JSON and SVD files | Deterministic validator reports | Injected address/bit errors are detected |
+| B4 | Add CoVe retry loop with stop rules | 2 to 3h | B3 mismatch reports | Retry logs and final JSON or UNCERTAIN | Max 3 retries, deterministic fail-closed behavior |
+| B5 | Build qualitative error taxonomy evidence pack | 1 to 2h | B3/B4 failures and corrections | Address Drift, Layout Confusion, Context Bleed examples | Taxonomy table and evidence snippets are paper-ready |
 
-### Day 1
-- Member 1: Stage 1-3 baseline indexing for one MCU datasheet.
-- Member 2: JSON schema and extractor prompt contract.
-- Member 3: Curate benchmark query list and expected outputs format.
+## Modular Breakdown: Member 3 (Package C)
 
-### Day 2
-- Member 1: Stage 4 hybrid retrieval and RRF fusion.
-- Member 2: Stage 5 extraction service and schema enforcement.
-- Member 3: Build smoke tests for retrieval to extraction handoff.
+Do modules in order:
 
-### Day 3
-- Member 2: Stage 6 validator and Stage 7 CoVe loop.
-- Member 1: Retrieval tuning for failure cases from validator feedback.
-- Member 3: Stage 8 synthesis skeleton and audit trace format.
+| Module | Task | Estimated Time | Input | Output | Done Check |
+|---|---|---|---|---|---|
+| C1 | Build synthesis templates and trace mapping | 2 to 3h | Validated JSON fixtures | `driver.h`, `driver.c`, `audit_trace.json` | Every emitted symbol has provenance |
+| C2 | Package demo flow or replay bundle | 2h | C1 artifacts + sample query inputs | Demo script or deterministic replay package | One-command showable demo path exists |
+| C3 | Run smoke check and handoff demo notes | 1 to 2h | C2 package | Smoke-run log and presenter notes | Demo can be shown quickly without setup surprises |
 
-### Day 4
-- Member 1: stabilize indexing/retrieval path.
-- Member 2: stabilize validator/retry path.
-- Member 3: integrate end-to-end pipeline and run first full demo.
+## Async Dependency Contracts
 
-### Day 5
-- All: fix top failure modes and finalize curated benchmark runs.
+- Member 1 hands off A2 and A3 artifacts to unblock B1/B2 realism.
+- Member 2 can start B1/B2 with fixtures, then replace inputs when A3 is ready.
+- Member 2 hands off B4 validated JSON outputs to unblock C1.
+- Member 3 hands off C1 synthesis outputs to Member 1 for A5 scoring summary.
+- Member 2 hands off B5 taxonomy evidence for final paper write-up.
+- Handshake files are versioned so members do not need live coordination.
 
-### Day 6
-- Member 3: run PASS@K and produce result tables.
-- Member 1 and Member 2: collect qualitative examples for paper narrative.
+## Prompt Assets Per Package
 
-### Day 7
-- All: freeze code, finalize docs, and package reproducibility notes.
+Prompt files are stored under `prompts/work-packages/`:
 
-## Git Work Split
+- `member1-package-a-data-retrieval.md`
+- `member2-package-b-extraction-validation-cove.md`
+- `member3-package-c-synthesis-eval-demo.md`
 
-## Branching Model
+Each member owns and iterates only their package prompt file.
 
-- `main`: protected, demo-stable only.
-- Feature branches: short-lived branches per task.
+## Two-Day Execution Plan
 
-Branch naming:
-- `feat/m1-index-<topic>` for Member 1.
-- `feat/m2-extract-<topic>` for Member 2.
-- `feat/m3-synth-<topic>` for Member 3.
-- `fix/<area>-<topic>` for cross-cutting fixes.
+### Day 1 (Build Package Cores)
 
-## Directory Ownership for PR Routing
+- Member 1: complete A1 and A2, start A3.
+- Member 2: complete B1 and most of B2.
+- Member 3: complete C1.
 
-- Member 1 owns: `src/ingest/`, `src/index/`, `src/retrieval/`.
-- Member 2 owns: `src/extractor/`, `src/validator/`, `schemas/timing_constraints.schema.json`.
-- Member 3 owns: `src/synthesis/`, `src/orchestration/`, `tests/`, `.github/`.
+Day 1 exit criteria:
+- Every member completes at least two modules with reproducible artifacts.
 
-PR rules:
-- At least 1 reviewer required.
-- If code touches another member's primary area, that member must review.
-- No direct push to `main`.
-- Squash merge to keep history clean.
+### Day 2 (Finalize for Paper + Demo)
 
-## Commit and PR Conventions
+- Member 1: finish A3, A4, and A5.
+- Member 2: finish B2, B3, B4, and B5.
+- Member 3: finish C2 and C3.
 
-Commit format:
-- `feat(index): add colpali batch encoder`
-- `feat(validator): add bit overlap check`
-- `fix(retrieval): correct hex token boost`
-- `test(integration): add svd mismatch regression`
+Day 2 exit criteria:
+- All module checkboxes are done, with Package A/B paper evidence and Package C demo assets present.
 
-PR template checklist:
-- Linked issue/task ID.
-- Test evidence (unit/integration logs).
-- Risk note and rollback note.
-- Updated docs if interface changed.
+## Demo Strategy When "Nothing to Show"
 
-## Integration Cadence (Demo)
+If full live E2E is unstable, show a minimal but credible flow:
 
-- Daily: each member merges at least one completed task branch to `main` after review.
-- End of week: freeze repository and tag demo snapshot.
+- One benchmark query and retrieved pages.
+- JSON before and after validator/CoVe.
+- Generated `driver.h`/`driver.c` with `audit_trace.json`.
+- One PASS@K snapshot plus one qualitative correction case.
 
-## Conflict Avoidance Rules
+## Git Workflow (No Split Ownership)
 
-- One owner merges first for shared contracts (`schemas/`, shared interfaces).
-- Use schema versioning for extractor-validator-synthesis contracts.
-- Any breaking interface change requires joint approval from affected owners.
+Branch model:
+- `main`: paper/demo stable.
+- `feat/m1-package-a-<topic>` for Package A changes.
+- `feat/m2-package-b-<topic>` for Package B changes.
+- `feat/m3-package-c-<topic>` for Package C changes.
+- `exp/<topic>` for temporary prompt experiments.
 
-## Escalation and Fallback
+Merge rule:
+- Package owner merges only after package done criteria and artifacts are present.
+- Every metrics-affecting merge includes run manifest evidence.
 
-- If CoVe still fails after 3 tries, mark output `UNCERTAIN` and open review ticket.
-- Critical bug in `main` is fixed via `hotfix/<topic>` and merged directly after review.
+## Session Checklist
+
+For each member session:
+
+1. Pick the next unfinished module in your package sequence.
+2. Run the minimum commands needed to produce one artifact.
+3. Save outputs in timestamped run folders.
+4. Record prompt version and observed metrics.
+5. Commit reproducible progress.
+
+## Risk Controls
+
+- CoVe retry loop hard limit is 3; otherwise emit `UNCERTAIN`.
+- Never synthesize code from unvalidated JSON.
+- If retrieval quality drops, narrow benchmark scope before tuning more components.
+- If time is short, prioritize one strong ablation and one qualitative error case for paper evidence.

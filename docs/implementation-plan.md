@@ -2,7 +2,7 @@
 
 ## Implementation Plan
 
-KarcinoJen is a demo-first research prototype that generates verifiable C driver snippets from vendor MCU datasheet PDFs using a visual-first RAG pipeline and deterministic CMSIS-SVD checks.
+KarcinoJen is a paper-first research prototype that generates verifiable C driver snippets from vendor MCU datasheet PDFs using a visual-first RAG pipeline, prompt engineering, and deterministic CMSIS-SVD checks.
 
 ## Project Goal
 
@@ -12,6 +12,7 @@ Create an end-to-end system that:
 - Extracts register definitions (and optional timing constraints) with a VLM into strict JSON.
 - Validates core register facts against CMSIS-SVD with deterministic checks.
 - Synthesizes traceable C driver artifacts for a limited demo query set.
+- Produces paper-ready evidence (tables, ablations, error analysis) within a 2-day sprint.
 
 ## Scope
 
@@ -27,6 +28,17 @@ Out of scope (initial version):
 - Broad MCU coverage beyond selected demo targets.
 - Runtime flashing/integration on target hardware.
 
+## Research Constraints for Publishability
+
+- No model fine-tuning in this project timeline.
+- Methodology is zero-shot extraction with deterministic grounding.
+- Novelty claim is architectural and procedural: hybrid retrieval plus SVD validation plus CoVe loop, enabled by disciplined prompt engineering.
+- Model weights are treated as fixed black-box APIs.
+
+Rationale:
+- Two-day scope cannot support reliable multimodal fine-tuning data collection and training.
+- Controlled prompting plus deterministic validation is the core scientific hypothesis.
+
 ## Architecture Summary
 
 | Stage | Mode | Component | Key Output |
@@ -41,69 +53,73 @@ Out of scope (initial version):
 | 8 | Online | Code synthesis agent | driver.h + driver.c + audit_trace.json |
 | 9 | Output | Verification and scoring | PASS@K and final deliverables |
 
-## One-Week Demo Timeline
+## Two-Day Prompt-Engineering Sprint
 
-### Day 1: Dataset and Wiring
+### Day 1: Reliability Core (Prompt + Validation)
 Tasks:
 - Select one MCU family and 1 to 2 datasheets.
-- Add matching CMSIS-SVD files.
-- Confirm schema contracts and run a minimal dry run.
+- Add matching CMSIS-SVD files and freeze a compact `MCU-Bench` subset.
+- Engineer strict extraction prompts and validate JSON conformance.
+- Implement deterministic validator checks and mismatch reports.
+- Add CoVe retry loop (max 3) driven by validator feedback.
 
 Exit criteria:
-- One datasheet and one SVD pair run through a smoke pipeline.
+- A small benchmark subset consistently reaches schema-valid, validator-passing JSON.
+- Failure examples are captured with taxonomy labels and correction outcomes.
 
-### Day 2: Offline Ingestion and Visual Index
+### Day 2: Paper Assets + Minimal Demo
 Tasks:
-- Implement PDF page rendering at 300 dpi.
-- Generate ColPali patch embeddings.
-- Store page entries in ChromaDB with metadata.
+- Generate `driver.h`, `driver.c`, and `audit_trace.json` from validated JSON.
+- Run three configurations (Vanilla, no-CoVe, Full) on the same query list.
+- Build PASS@K summary, ablation deltas, and qualitative error table.
+- Package a one-command demo script; if live E2E is unstable, package deterministic replay artifacts.
 
 Exit criteria:
-- Selected datasheets are indexed and queryable.
+- Paper-ready methodology and results tables are complete.
+- Demo can be shown live or replayed from saved artifacts with clear provenance.
 
-### Day 3: Hybrid Retrieval
-Tasks:
-- Implement MaxSim late interaction.
-- Implement BM25 with hex token boost.
-- Fuse with Reciprocal Rank Fusion.
+## MCU-Bench: Benchmark Dataset Definition
 
-Exit criteria:
-- Retrieval returns top-k pages for a curated query list.
+Name:
+- MCU-Bench: A Multimodal Benchmark for Hardware Interface Synthesis.
 
-### Day 4: VLM Extraction
-Tasks:
-- Add strict JSON extraction prompt.
-- Add parser and schema validation.
-- Support one open model path and one benchmark path.
+Target size (demo release):
+- 15 to 20 benchmark items.
 
-Exit criteria:
-- Extractor returns schema-valid JSON on most curated samples.
+Each benchmark item contains:
+- One rendered datasheet page image.
+- One natural language hardware query.
+- One hand-verified ground-truth JSON.
+- Metadata: MCU family, peripheral, register name, source page id.
 
-### Day 5: Validation and Re-prompt Loop
-Tasks:
-- Implement address, bit-field, and fuzzy-name checks.
-- Add mismatch report format.
-- Add CoVe retry loop up to 3 attempts.
+Dataset release package:
+- `data/mcu-bench/queries.jsonl`
+- `data/mcu-bench/ground_truth.jsonl`
+- `data/mcu-bench/pages/` (or a reconstruction script if redistribution is restricted)
+- `data/mcu-bench/README.md` with annotation protocol.
 
-Exit criteria:
-- Invalid outputs are rejected with explicit mismatch reports.
+Licensing note:
+- If vendor terms do not allow page-image redistribution, release file/page references and scripts to reconstruct benchmark images from publicly available PDFs.
 
-### Day 6: Code Synthesis and Demo Script
-Tasks:
-- Generate driver.h, driver.c, and audit_trace.json from validated JSON.
-- Build a single command demo flow for end-to-end run.
+## Evaluation Protocol and Baselines
 
-Exit criteria:
-- End-to-end run succeeds on selected demo queries.
+All methods run on the same MCU-Bench split and same query list.
 
-### Day 7: Evaluation and Paper Assets
-Tasks:
-- Compute PASS@K on curated benchmark set.
-- Collect qualitative error analysis examples.
-- Finalize figures/tables and reproducibility notes for the paper.
+Baseline 1: Vanilla VLM
+- Input: page image + query + basic extraction prompt.
+- No deterministic validator in control path.
+- No CoVe correction loop.
 
-Exit criteria:
-- Demo results and artifacts are ready for publication submission.
+Baseline 2: KarcinoJen without CoVe
+- Full retrieval and SVD validation enabled.
+- Stage 7 disabled. Validation failure remains failure.
+
+Proposed method: Full KarcinoJen
+- Full pipeline with SVD validation and CoVe retries (max 3).
+
+Primary table in paper:
+- PASS@K for all three methods.
+- Absolute and relative gain from Baseline 1 to Baseline 2 to Full system.
 
 ## Proposed Repository Layout
 
@@ -144,6 +160,7 @@ KarcinoJen/
 
 Primary metric:
 - PASS@K: address-level correctness in `driver.h` against SVD ground truth.
+- Delta PASS@K versus both baselines.
 
 Supporting metrics:
 - Retrieval Recall@K on labeled query-page pairs.
@@ -151,12 +168,26 @@ Supporting metrics:
 - Validator catch rate on curated fail cases.
 - CoVe recovery rate after first fail.
 - Demo completion rate over target query set.
+- Invalid-hex error rate before and after validation.
 
 Quality gates:
 - No code synthesis from unvalidated JSON.
 - Retry loop hard limit of 3.
 - Full provenance required for every emitted define.
 - End-to-end demo must run reproducibly on one machine.
+- Baseline and ablation outputs must be reproducible from saved run configs.
+
+## Qualitative Error Taxonomy (Paper Section)
+
+Required categories:
+- Address Drift: near-miss hexadecimal values (example: `0x40004404` vs `0x40004400`).
+- Layout Confusion: merged-cell or row/column boundary mistakes in bit-field tables.
+- Context Bleed: extraction from adjacent peripherals on same page.
+
+For each category report:
+- One failure example from Baseline 1.
+- Whether Stage 6 validator catches it.
+- Whether Stage 7 CoVe loop corrects it.
 
 ## Risks and Mitigations
 
@@ -169,7 +200,7 @@ Quality gates:
 - Risk: timing table values extracted with wrong units or ambiguous conditions.
   Mitigation: unit normalization, monotonicity checks, and conflict detection before synthesis.
 
-- Risk: one-week schedule cannot support full production hardening.
+- Risk: two-day schedule cannot support full production hardening.
   Mitigation: prioritize a narrow demo query set and document known limitations.
 
 - Risk: silent propagation of wrong outputs.
@@ -178,7 +209,7 @@ Quality gates:
 ## Immediate Next Steps
 
 1. Freeze a narrow benchmark set (10 to 20 queries) for one MCU family.
-2. Implement Stage 1-4 quickly and start collecting intermediate outputs.
-3. Add Stage 6-7 validation loop before widening query coverage.
-4. Keep Stage 8 synthesis minimal and deterministic for paper demonstration.
-5. Prepare paper-ready tables for PASS@K, recovery rate, and failure examples.
+2. Finalize prompt templates for extraction, correction, and synthesis with versioned run notes.
+3. Prioritize validator and CoVe reliability before expanding benchmark coverage.
+4. Keep synthesis deterministic and traceable for paper evidence.
+5. Produce one credible demo path first, then extend only if time remains.

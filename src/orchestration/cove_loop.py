@@ -51,13 +51,14 @@ def apply_deterministic_correction(
 ) -> dict[str, Any]:
     corrected = copy.deepcopy(extraction)
     checks = validation.checks
+    name_check = checks.get("name_fuzzy", {})
+    peripheral_match = bool(name_check.get("peripheral_match", True))
 
     address_check = checks.get("address_range", {})
-    if address_check and not address_check.get("ok", True):
+    if address_check and not address_check.get("ok", True) and peripheral_match:
         corrected["base_address"] = address_check.get("expected_base_address", corrected.get("base_address"))
         corrected["offset"] = address_check.get("expected_offset", corrected.get("offset"))
 
-    name_check = checks.get("name_fuzzy", {})
     if name_check and not name_check.get("ok", True):
         corrected["register_name"] = name_check.get("expected", corrected.get("register_name"))
 
@@ -119,10 +120,10 @@ def run_cove_loop(
         if validation.status == "PASS":
             return CoVeOutcome(status="PASS", final_extraction=current, attempts=attempts)
 
-        expected_name = validation.checks.get("name_fuzzy", {}).get("expected")
-        if not expected_name or expected_name not in registers:
+        match_key = validation.checks.get("name_fuzzy", {}).get("match_key")
+        if not match_key or match_key not in registers:
             break
 
-        current = apply_deterministic_correction(current, validation, registers[expected_name])
+        current = apply_deterministic_correction(current, validation, registers[match_key])
 
     return CoVeOutcome(status="UNCERTAIN", final_extraction=current, attempts=attempts)

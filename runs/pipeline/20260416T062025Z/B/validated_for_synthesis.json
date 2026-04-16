@@ -1,0 +1,46 @@
+[
+  {
+    "peripheral": "USART2",
+    "register_name": "CR1",
+    "base_address": "0x40005400",
+    "offset": "0x00",
+    "bits": [
+      {
+        "name": "UE",
+        "position": 13,
+        "width": 1,
+        "access": "RW"
+      },
+      {
+        "name": "M",
+        "position": 12,
+        "width": 1,
+        "access": "RW"
+      },
+      {
+        "name": "PCE",
+        "position": 10,
+        "width": 1,
+        "access": "RW"
+      },
+      {
+        "name": "TE",
+        "position": 3,
+        "width": 1,
+        "access": "RW"
+      },
+      {
+        "name": "RE",
+        "position": 2,
+        "width": 1,
+        "access": "RW"
+      }
+    ],
+    "timing_constraints": [],
+    "source_page_id": "stm32f401_rm_p551",
+    "source_file": "stm32f401-rm.pdf",
+    "validation_status": "PASS",
+    "validation_attempts": 2,
+    "mcu_family": "STM32F401"
+  }
+]

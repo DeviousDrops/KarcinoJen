@@ -7,6 +7,13 @@ from typing import Any
 import xml.etree.ElementTree as ET
 
 
+def _parse_int(value: str | int) -> int:
+    if isinstance(value, int):
+        return value
+    text = str(value).strip()
+    return int(text, 0)
+
+
 @dataclass(frozen=True)
 class RegisterDef:
     name: str
@@ -63,46 +70,55 @@ def load_svd_registers(svd_path: str) -> dict[str, RegisterDef]:
     for peripheral in root.findall(".//peripheral"):
         peripheral_name = peripheral.findtext("name", default="")
         base_address_text = peripheral.findtext("baseAddress", default="0x0")
-        base_address = int(base_address_text, 16)
+        base_address = _parse_int(base_address_text)
 
         for register in peripheral.findall(".//register"):
             register_name = register.findtext("name", default="")
             offset_text = register.findtext("addressOffset", default="0x0")
             size_text = register.findtext("size", default="32")
 
-            register_map[register_name] = RegisterDef(
+            register_key = f"{peripheral_name}.{register_name}"
+            register_map[register_key] = RegisterDef(
                 name=register_name,
                 peripheral=peripheral_name,
                 base_address=base_address,
-                offset=int(offset_text, 16),
-                size=int(size_text),
+                offset=_parse_int(offset_text),
+                size=_parse_int(size_text),
             )
 
     return register_map
 
 
 def _best_register_match(
-    extracted_register_name: str, registers: dict[str, RegisterDef]
+    extracted_register_name: str,
+    extracted_peripheral: str,
+    extracted_address: int | None,
+    registers: dict[str, RegisterDef],
 ) -> tuple[str, RegisterDef, int]:
-    if extracted_register_name in registers:
-        reg = registers[extracted_register_name]
-        return reg.name, reg, 0
 
-    best_name = ""
+    best_key = ""
     best_reg: RegisterDef | None = None
-    best_distance = 10**9
+    best_score = (10**9, 10**18, 10**9)
 
-    for candidate_name, candidate_reg in registers.items():
-        distance = _levenshtein_distance(extracted_register_name, candidate_name)
-        if distance < best_distance:
-            best_name = candidate_name
+    extracted_peripheral_upper = extracted_peripheral.upper()
+
+    for candidate_key, candidate_reg in registers.items():
+        distance = _levenshtein_distance(extracted_register_name, candidate_reg.name)
+        peripheral_penalty = 0 if candidate_reg.peripheral.upper() == extracted_peripheral_upper else 1
+        if extracted_address is None:
+            address_delta = 10**18
+        else:
+            address_delta = abs(candidate_reg.absolute_address - extracted_address)
+        score = (distance, address_delta, peripheral_penalty)
+        if score < best_score:
+            best_key = candidate_key
             best_reg = candidate_reg
-            best_distance = distance
+            best_score = score
 
     if best_reg is None:
         raise ValueError("SVD register map is empty")
 
-    return best_name, best_reg, best_distance
+    return best_key, best_reg, best_score[0]
 
 
 def _normalize_timing_value(value: float, unit: str) -> float:
@@ -113,6 +129,10 @@ def _normalize_timing_value(value: float, unit: str) -> float:
         "us": 1e-6,
         "ns": 1e-9,
         "ps": 1e-12,
+        "hz": 1.0,
+        "khz": 1e3,
+        "mhz": 1e6,
+        "ghz": 1e9,
     }
     if unit_l not in factors:
         raise ValueError(f"Unsupported timing unit: {unit}")
@@ -162,15 +182,36 @@ def validate_extraction(
     extraction: dict[str, Any], registers: dict[str, RegisterDef], *, name_distance_limit: int = 2
 ) -> ValidationResult:
     extracted_name = str(extraction.get("register_name", ""))
-    best_name, best_register, distance = _best_register_match(extracted_name, registers)
+    extracted_peripheral = str(extraction.get("peripheral", ""))
+    extracted_address: int | None = None
+    try:
+        extracted_address = int(str(extraction.get("base_address", "0x0")), 16) + int(
+            str(extraction.get("offset", "0x0")), 16
+        )
+    except ValueError:
+        extracted_address = None
+    best_key, best_register, distance = _best_register_match(
+        extracted_name,
+        extracted_peripheral,
+        extracted_address,
+        registers,
+    )
 
     checks: dict[str, dict[str, Any]] = {}
 
-    name_ok = distance <= name_distance_limit
+    peripheral_match = (
+        not extracted_peripheral
+        or best_register.peripheral.upper() == extracted_peripheral.upper()
+    )
+    name_ok = distance <= name_distance_limit and peripheral_match
     checks["name_fuzzy"] = {
         "ok": name_ok,
-        "expected": best_name,
+        "expected": best_register.name,
+        "expected_peripheral": best_register.peripheral,
         "actual": extracted_name,
+        "actual_peripheral": extracted_peripheral,
+        "match_key": best_key,
+        "peripheral_match": peripheral_match,
         "distance": distance,
         "threshold": name_distance_limit,
     }

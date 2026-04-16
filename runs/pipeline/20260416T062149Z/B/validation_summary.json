@@ -1,0 +1,220 @@
+[
+  {
+    "record_id": "q1",
+    "query": "Extract USART2 CR1 register fields",
+    "mcu_family": "MockMCU",
+    "svd_file": "data/svd/mock_mcu.svd",
+    "schema_valid": true,
+    "schema_errors": [],
+    "initial_validation": {
+      "status": "PASS",
+      "checks": {
+        "name_fuzzy": {
+          "ok": true,
+          "expected": "USART_CR1",
+          "expected_peripheral": "USART2",
+          "actual": "USART_CR1",
+          "actual_peripheral": "USART2",
+          "match_key": "USART2.USART_CR1",
+          "peripheral_match": true,
+          "distance": 0,
+          "threshold": 2
+        },
+        "address_range": {
+          "ok": true,
+          "expected": "0x40004400",
+          "actual": "0x40004400",
+          "expected_base_address": "0x40004400",
+          "expected_offset": "0x00",
+          "peripheral": "USART2"
+        },
+        "bit_arithmetic": {
+          "ok": true,
+          "register_size": 32,
+          "reason": ""
+        },
+        "timing_consistency": {
+          "ok": true
+        }
+      },
+      "message": "validation passed"
+    },
+    "final_status": "PASS",
+    "cove": null
+  },
+  {
+    "record_id": "q2",
+    "query": "Extract USART2 CR1 base address",
+    "mcu_family": "MockMCU",
+    "svd_file": "data/svd/mock_mcu.svd",
+    "schema_valid": true,
+    "schema_errors": [],
+    "initial_validation": {
+      "status": "PASS",
+      "checks": {
+        "name_fuzzy": {
+          "ok": true,
+          "expected": "USART_CR1",
+          "expected_peripheral": "USART2",
+          "actual": "USART_CR1",
+          "actual_peripheral": "USART2",
+          "match_key": "USART2.USART_CR1",
+          "peripheral_match": true,
+          "distance": 0,
+          "threshold": 2
+        },
+        "address_range": {
+          "ok": true,
+          "expected": "0x40004400",
+          "actual": "0x40004400",
+          "expected_base_address": "0x40004400",
+          "expected_offset": "0x00",
+          "peripheral": "USART2"
+        },
+        "bit_arithmetic": {
+          "ok": true,
+          "register_size": 32,
+          "reason": ""
+        },
+        "timing_consistency": {
+          "ok": true,
+          "reason": "timing constraints missing (optional)"
+        }
+      },
+      "message": "validation passed"
+    },
+    "final_status": "PASS",
+    "cove": null
+  },
+  {
+    "record_id": "q3",
+    "query": "Extract USART2 control bits",
+    "mcu_family": "MockMCU",
+    "svd_file": "data/svd/mock_mcu.svd",
+    "schema_valid": true,
+    "schema_errors": [],
+    "initial_validation": {
+      "status": "PASS",
+      "checks": {
+        "name_fuzzy": {
+          "ok": true,
+          "expected": "USART_CR1",
+          "expected_peripheral": "USART2",
+          "actual": "USART_CR1",
+          "actual_peripheral": "USART2",
+          "match_key": "USART2.USART_CR1",
+          "peripheral_match": true,
+          "distance": 0,
+          "threshold": 2
+        },
+        "address_range": {
+          "ok": true,
+          "expected": "0x40004400",
+          "actual": "0x40004400",
+          "expected_base_address": "0x40004400",
+          "expected_offset": "0x00",
+          "peripheral": "USART2"
+        },
+        "bit_arithmetic": {
+          "ok": true,
+          "register_size": 32,
+          "reason": ""
+        },
+        "timing_consistency": {
+          "ok": true,
+          "reason": "timing constraints missing (optional)"
+        }
+      },
+      "message": "validation passed"
+    },
+    "final_status": "PASS",
+    "cove": null
+  },
+  {
+    "record_id": "q4",
+    "query": "Extract USART2 timing and bits",
+    "mcu_family": "MockMCU",
+    "svd_file": "data/svd/mock_mcu.svd",
+    "schema_valid": true,
+    "schema_errors": [],
+    "initial_validation": {
+      "status": "PASS",
+      "checks": {
+        "name_fuzzy": {
+          "ok": true,
+          "expected": "USART_CR1",
+          "expected_peripheral": "USART2",
+          "actual": "USART_CR1",
+          "actual_peripheral": "USART2",
+          "match_key": "USART2.USART_CR1",
+          "peripheral_match": true,
+          "distance": 0,
+          "threshold": 2
+        },
+        "address_range": {
+          "ok": true,
+          "expected": "0x40004400",
+          "actual": "0x40004400",
+          "expected_base_address": "0x40004400",
+          "expected_offset": "0x00",
+          "peripheral": "USART2"
+        },
+        "bit_arithmetic": {
+          "ok": true,
+          "register_size": 32,
+          "reason": ""
+        },
+        "timing_consistency": {
+          "ok": true
+        }
+      },
+      "message": "validation passed"
+    },
+    "final_status": "PASS",
+    "cove": null
+  },
+  {
+    "record_id": "q5",
+    "query": "Extract neighboring peripheral table",
+    "mcu_family": "MockMCU",
+    "svd_file": "data/svd/mock_mcu.svd",
+    "schema_valid": true,
+    "schema_errors": [],
+    "initial_validation": {
+      "status": "PASS",
+      "checks": {
+        "name_fuzzy": {
+          "ok": true,
+          "expected": "I2C_CR1",
+          "expected_peripheral": "I2C1",
+          "actual": "I2C_CR1",
+          "actual_peripheral": "I2C1",
+          "match_key": "I2C1.I2C_CR1",
+          "peripheral_match": true,
+          "distance": 0,
+          "threshold": 2
+        },
+        "address_range": {
+          "ok": true,
+          "expected": "0x40005400",
+          "actual": "0x40005400",
+          "expected_base_address": "0x40005400",
+          "expected_offset": "0x00",
+          "peripheral": "I2C1"
+        },
+        "bit_arithmetic": {
+          "ok": true,
+          "register_size": 32,
+          "reason": ""
+        },
+        "timing_consistency": {
+          "ok": true,
+          "reason": "timing constraints missing (optional)"
+        }
+      },
+      "message": "validation passed"
+    },
+    "final_status": "PASS",
+    "cove": null
+  }
+]

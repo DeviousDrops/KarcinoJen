@@ -1,0 +1,137 @@
+[
+  {
+    "peripheral": "USART2",
+    "register_name": "USART_CR1",
+    "base_address": "0x40004400",
+    "offset": "0x00",
+    "bits": [
+      {
+        "name": "UE",
+        "position": 0,
+        "width": 1,
+        "access": "RW"
+      },
+      {
+        "name": "RE",
+        "position": 2,
+        "width": 1,
+        "access": "RW"
+      },
+      {
+        "name": "TE",
+        "position": 3,
+        "width": 1,
+        "access": "RW"
+      }
+    ],
+    "timing_constraints": [
+      {
+        "name": "fPCLK_max",
+        "min": null,
+        "typ": null,
+        "max": 80000000,
+        "unit": "Hz",
+        "condition": "VDD >= 2.7V"
+      }
+    ],
+    "source_page_id": "fixture_q1",
+    "source_file": "mock_fixture.pdf",
+    "validation_status": "PASS",
+    "validation_attempts": 1,
+    "mcu_family": "MockMCU"
+  },
+  {
+    "peripheral": "USART2",
+    "register_name": "USART_CR1",
+    "base_address": "0x40004400",
+    "offset": "0x00",
+    "bits": [
+      {
+        "name": "UE",
+        "position": 0,
+        "width": 1,
+        "access": "RW"
+      }
+    ],
+    "timing_constraints": [],
+    "source_page_id": "fixture_q2",
+    "source_file": "mock_fixture.pdf",
+    "validation_status": "PASS",
+    "validation_attempts": 1,
+    "mcu_family": "MockMCU"
+  },
+  {
+    "peripheral": "USART2",
+    "register_name": "USART_CR1",
+    "base_address": "0x40004400",
+    "offset": "0x00",
+    "bits": [
+      {
+        "name": "UE",
+        "position": 0,
+        "width": 1,
+        "access": "RW"
+      },
+      {
+        "name": "M1",
+        "position": 28,
+        "width": 1,
+        "access": "RW"
+      }
+    ],
+    "timing_constraints": [],
+    "source_page_id": "fixture_q3",
+    "source_file": "mock_fixture.pdf",
+    "validation_status": "PASS",
+    "validation_attempts": 1,
+    "mcu_family": "MockMCU"
+  },
+  {
+    "peripheral": "USART2",
+    "register_name": "USART_CR1",
+    "base_address": "0x40004400",
+    "offset": "0x00",
+    "bits": [
+      {
+        "name": "UE",
+        "position": 0,
+        "width": 1,
+        "access": "RW"
+      }
+    ],
+    "timing_constraints": [
+      {
+        "name": "tSU",
+        "min": 10,
+        "typ": 20,
+        "max": 30,
+        "unit": "ns"
+      }
+    ],
+    "source_page_id": "fixture_q4",
+    "source_file": "mock_fixture.pdf",
+    "validation_status": "PASS",
+    "validation_attempts": 1,
+    "mcu_family": "MockMCU"
+  },
+  {
+    "peripheral": "I2C1",
+    "register_name": "I2C_CR1",
+    "base_address": "0x40005400",
+    "offset": "0x00",
+    "bits": [
+      {
+        "name": "PE",
+        "position": 0,
+        "width": 1,
+        "access": "RW"
+      }
+    ],
+    "timing_constraints": [],
+    "source_page_id": "fixture_q5",
+    "source_file": "mock_fixture.pdf",
+    "validation_status": "PASS",
+    "validation_attempts": 1,
+    "mcu_family": "MockMCU"
+  }
+]

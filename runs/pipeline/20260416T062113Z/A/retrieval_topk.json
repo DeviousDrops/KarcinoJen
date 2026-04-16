@@ -1,0 +1,452 @@
+[
+  {
+    "id": "mcu_bench_001",
+    "query": "Extract RCC_AHB1ENR clock-enable fields and report GPIOAEN, DMA1EN, and DMA2EN bit positions and access type.",
+    "expected_page_id": "stm32f401_rm_p118",
+    "retrieved": [
+      {
+        "page_id": "stm32f401_rm_p118",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 118,
+        "score": 6
+      },
+      {
+        "page_id": "stm32f401_rm_p119",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 119,
+        "score": 1
+      },
+      {
+        "page_id": "stm32f401_rm_p158",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 158,
+        "score": 1
+      }
+    ]
+  },
+  {
+    "id": "mcu_bench_002",
+    "query": "Extract RCC_APB1ENR clock-enable fields and identify TIM2EN, I2C1EN, and USART2EN control bits.",
+    "expected_page_id": "stm32f401_rm_p119",
+    "retrieved": [
+      {
+        "page_id": "stm32f401_rm_p119",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 119,
+        "score": 6
+      },
+      {
+        "page_id": "rp2040_ds_p434",
+        "source_file": "RP2040-datasheet.pdf",
+        "page_number": 434,
+        "score": 3
+      },
+      {
+        "page_id": "stm32f401_rm_p118",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 118,
+        "score": 1
+      }
+    ]
+  },
+  {
+    "id": "mcu_bench_003",
+    "query": "Extract GPIOA MODER register bit layout for pins 0 to 3 and explain mode encoding width per pin.",
+    "expected_page_id": "stm32f401_rm_p158",
+    "retrieved": [
+      {
+        "page_id": "stm32f401_rm_p158",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 158,
+        "score": 7
+      },
+      {
+        "page_id": "stm32f401_rm_p551",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 551,
+        "score": 4
+      },
+      {
+        "page_id": "rp2040_ds_p248",
+        "source_file": "RP2040-datasheet.pdf",
+        "page_number": 248,
+        "score": 3
+      }
+    ]
+  },
+  {
+    "id": "mcu_bench_004",
+    "query": "Extract GPIOA AFRL alternate-function field layout and report AF selection width for low pins.",
+    "expected_page_id": "stm32f401_rm_p162",
+    "retrieved": [
+      {
+        "page_id": "stm32f401_rm_p162",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 162,
+        "score": 5
+      },
+      {
+        "page_id": "stm32f401_rm_p551",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 551,
+        "score": 2
+      },
+      {
+        "page_id": "stm32f401_rm_p118",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 118,
+        "score": 1
+      }
+    ]
+  },
+  {
+    "id": "mcu_bench_005",
+    "query": "Extract USART2 CR1 control bits including UE, M, PCE, TE, and RE with bit positions.",
+    "expected_page_id": "stm32f401_rm_p551",
+    "retrieved": [
+      {
+        "page_id": "stm32f401_rm_p551",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 551,
+        "score": 6
+      },
+      {
+        "page_id": "rp2040_ds_p434",
+        "source_file": "RP2040-datasheet.pdf",
+        "page_number": 434,
+        "score": 3
+      },
+      {
+        "page_id": "stm32f401_rm_p495",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 495,
+        "score": 2
+      }
+    ]
+  },
+  {
+    "id": "mcu_bench_006",
+    "query": "Extract USART2 BRR baud-rate divisor fields DIV_Mantissa and DIV_Fraction with field widths.",
+    "expected_page_id": "stm32f401_rm_p551",
+    "retrieved": [
+      {
+        "page_id": "stm32f401_rm_p551",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 551,
+        "score": 3
+      },
+      {
+        "page_id": "rp2040_ds_p433",
+        "source_file": "RP2040-datasheet.pdf",
+        "page_number": 433,
+        "score": 2
+      },
+      {
+        "page_id": "stm32f401_rm_p119",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 119,
+        "score": 1
+      }
+    ]
+  },
+  {
+    "id": "mcu_bench_007",
+    "query": "Extract I2C1 CR2 control fields including FREQ, ITERREN, ITEVTEN, ITBUFEN, DMAEN, and LAST.",
+    "expected_page_id": "stm32f401_rm_p495",
+    "retrieved": [
+      {
+        "page_id": "stm32f401_rm_p495",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 495,
+        "score": 6
+      },
+      {
+        "page_id": "rp2040_ds_p434",
+        "source_file": "RP2040-datasheet.pdf",
+        "page_number": 434,
+        "score": 3
+      },
+      {
+        "page_id": "stm32f401_rm_p551",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 551,
+        "score": 2
+      }
+    ]
+  },
+  {
+    "id": "mcu_bench_008",
+    "query": "Extract SPI1 CR1 mode fields including MSTR, BR, CPOL, CPHA, and SPE with offsets and widths.",
+    "expected_page_id": "stm32f401_rm_p602",
+    "retrieved": [
+      {
+        "page_id": "stm32f401_rm_p602",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 602,
+        "score": 8
+      },
+      {
+        "page_id": "stm32f401_rm_p158",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 158,
+        "score": 3
+      },
+      {
+        "page_id": "rp2040_ds_p467",
+        "source_file": "RP2040-datasheet.pdf",
+        "page_number": 467,
+        "score": 2
+      }
+    ]
+  },
+  {
+    "id": "mcu_bench_009",
+    "query": "Extract TIM2 PSC prescaler register width and explain how PSC affects timer counter clock.",
+    "expected_page_id": "stm32f401_rm_p368",
+    "retrieved": [
+      {
+        "page_id": "stm32f401_rm_p368",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 368,
+        "score": 6
+      },
+      {
+        "page_id": "rp2040_ds_p176",
+        "source_file": "RP2040-datasheet.pdf",
+        "page_number": 176,
+        "score": 3
+      },
+      {
+        "page_id": "stm32f401_rm_p551",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 551,
+        "score": 2
+      }
+    ]
+  },
+  {
+    "id": "mcu_bench_010",
+    "query": "Extract ADC1 CR1 configuration bits including RES, SCAN, EOCIE, and AWDEN with bit positions.",
+    "expected_page_id": "stm32f401_rm_p230",
+    "retrieved": [
+      {
+        "page_id": "stm32f401_rm_p230",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 230,
+        "score": 7
+      },
+      {
+        "page_id": "stm32f401_rm_p551",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 551,
+        "score": 2
+      },
+      {
+        "page_id": "stm32f401_rm_p158",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 158,
+        "score": 1
+      }
+    ]
+  },
+  {
+    "id": "mcu_bench_011",
+    "query": "Extract RESETS RESET register bits for UART0, TIMER, and USBCTRL reset control.",
+    "expected_page_id": "rp2040_ds_p176",
+    "retrieved": [
+      {
+        "page_id": "rp2040_ds_p176",
+        "source_file": "RP2040-datasheet.pdf",
+        "page_number": 176,
+        "score": 11
+      },
+      {
+        "page_id": "stm32f401_rm_p551",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 551,
+        "score": 2
+      },
+      {
+        "page_id": "stm32f401_rm_p230",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 230,
+        "score": 1
+      }
+    ]
+  },
+  {
+    "id": "mcu_bench_012",
+    "query": "Extract CLOCKS CLK_GPOUT0_CTRL fields including AUXSRC, ENABLE, KILL, and PHASE settings.",
+    "expected_page_id": "rp2040_ds_p197",
+    "retrieved": [
+      {
+        "page_id": "rp2040_ds_p197",
+        "source_file": "RP2040-datasheet.pdf",
+        "page_number": 197,
+        "score": 7
+      },
+      {
+        "page_id": "rp2040_ds_p176",
+        "source_file": "RP2040-datasheet.pdf",
+        "page_number": 176,
+        "score": 1
+      },
+      {
+        "page_id": "rp2040_ds_p248",
+        "source_file": "RP2040-datasheet.pdf",
+        "page_number": 248,
+        "score": 1
+      }
+    ]
+  },
+  {
+    "id": "mcu_bench_013",
+    "query": "Extract IO_BANK0 GPIO0_CTRL register fields IRQOVER, INOVER, OEOVER, OUTOVER, and FUNCSEL.",
+    "expected_page_id": "rp2040_ds_p248",
+    "retrieved": [
+      {
+        "page_id": "rp2040_ds_p248",
+        "source_file": "RP2040-datasheet.pdf",
+        "page_number": 248,
+        "score": 6
+      },
+      {
+        "page_id": "stm32f401_rm_p162",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 162,
+        "score": 3
+      },
+      {
+        "page_id": "stm32f401_rm_p551",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 551,
+        "score": 2
+      }
+    ]
+  },
+  {
+    "id": "mcu_bench_014",
+    "query": "Extract UART0 UARTIBRD integer baud divisor field and report its bit range and reset value.",
+    "expected_page_id": "rp2040_ds_p433",
+    "retrieved": [
+      {
+        "page_id": "rp2040_ds_p176",
+        "source_file": "RP2040-datasheet.pdf",
+        "page_number": 176,
+        "score": 7
+      },
+      {
+        "page_id": "rp2040_ds_p433",
+        "source_file": "RP2040-datasheet.pdf",
+        "page_number": 433,
+        "score": 6
+      },
+      {
+        "page_id": "stm32f401_rm_p551",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 551,
+        "score": 3
+      }
+    ]
+  },
+  {
+    "id": "mcu_bench_015",
+    "query": "Extract UART0 UARTCR control bits including CTSEN, RTSEN, RTS, and TX/RX enable controls.",
+    "expected_page_id": "rp2040_ds_p434",
+    "retrieved": [
+      {
+        "page_id": "rp2040_ds_p434",
+        "source_file": "RP2040-datasheet.pdf",
+        "page_number": 434,
+        "score": 9
+      },
+      {
+        "page_id": "rp2040_ds_p176",
+        "source_file": "RP2040-datasheet.pdf",
+        "page_number": 176,
+        "score": 3
+      },
+      {
+        "page_id": "rp2040_ds_p197",
+        "source_file": "RP2040-datasheet.pdf",
+        "page_number": 197,
+        "score": 3
+      }
+    ]
+  },
+  {
+    "id": "mcu_bench_016",
+    "query": "Extract I2C0 IC_CON fields including IC_SLAVE_DISABLE, IC_RESTART_EN, and speed/mode controls.",
+    "expected_page_id": "rp2040_ds_p467",
+    "retrieved": [
+      {
+        "page_id": "rp2040_ds_p467",
+        "source_file": "RP2040-datasheet.pdf",
+        "page_number": 467,
+        "score": 4
+      },
+      {
+        "page_id": "stm32f401_rm_p551",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 551,
+        "score": 1
+      },
+      {
+        "page_id": "stm32f401_rm_p602",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 602,
+        "score": 1
+      }
+    ]
+  },
+  {
+    "id": "mcu_bench_017",
+    "query": "Extract SPI0 SSPCR0 fields SCR, SPH, SPO, FRF, and DSS with bit widths.",
+    "expected_page_id": "rp2040_ds_p517",
+    "retrieved": [
+      {
+        "page_id": "rp2040_ds_p517",
+        "source_file": "RP2040-datasheet.pdf",
+        "page_number": 517,
+        "score": 10
+      },
+      {
+        "page_id": "stm32f401_rm_p158",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 158,
+        "score": 1
+      },
+      {
+        "page_id": "rp2040_ds_p543",
+        "source_file": "RP2040-datasheet.pdf",
+        "page_number": 543,
+        "score": 1
+      }
+    ]
+  },
+  {
+    "id": "mcu_bench_018",
+    "query": "Extract TIMER TIMERAWL register semantics and confirm it is a raw read of lower 32-bit timer value.",
+    "expected_page_id": "rp2040_ds_p543",
+    "retrieved": [
+      {
+        "page_id": "stm32f401_rm_p551",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 551,
+        "score": 6
+      },
+      {
+        "page_id": "stm32f401_rm_p118",
+        "source_file": "stm32f401-rm.pdf",
+        "page_number": 118,
+        "score": 5
+      },
+      {
+        "page_id": "rp2040_ds_p543",
+        "source_file": "RP2040-datasheet.pdf",
+        "page_number": 543,
+        "score": 5
+      }
+    ]
+  }
+]

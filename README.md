@@ -21,7 +21,7 @@ Everything else is internal implementation detail or temporary scratch space.
 
 ## Current Runtime Pieces
 
-- Retrieval: [src/index/page_index.py](src/index/page_index.py) and [src/retrieval/hybrid_retriever.py](src/retrieval/hybrid_retriever.py)
+- Page scanning and ranking happen directly in [scripts/run_pipeline.py](scripts/run_pipeline.py).
 - Extraction: [src/extractor/vlm_client.py](src/extractor/vlm_client.py) and [src/extractor/vlm_extractor.py](src/extractor/vlm_extractor.py)
 - Validation guardrails: [src/extractor/schema_harness.py](src/extractor/schema_harness.py) and [src/validator/svd_validator.py](src/validator/svd_validator.py)
 - Synthesis: [src/synthesis/synthesize.py](src/synthesis/synthesize.py)

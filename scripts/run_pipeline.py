@@ -10,9 +10,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import subprocess
 import sys
 import tempfile
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -23,18 +25,16 @@ if str(ROOT) not in sys.path:
 from src.extractor.model_config import load_runtime_config
 from src.extractor.vlm_client import VLMClient
 from src.extractor.vlm_extractor import run_stage5_extraction
-from src.index.page_index import load_page_catalog
 from src.ingest.pdf_page_renderer import render_pdf_page
-from src.retrieval.hybrid_retriever import retrieve_top_k
 from src.validator.svd_validator import load_svd_registers
 
 DATA_ROOT = ROOT / "data"
 DATASHEET_DIR = DATA_ROOT / "datasheets"
-MCU_BENCH_DIR = DATA_ROOT / "mcu-bench"
 SVD_DIR = DATA_ROOT / "svd"
 CONFIG_PATH = ROOT / "configs" / "model_config.json"
 SYNTHESIZE_SCRIPT = ROOT / "src" / "synthesis" / "synthesize.py"
 DEFAULT_OUTDIR = ROOT / "generated" / "drivers"
+HEX_PATTERN = re.compile(r"0x[0-9a-fA-F]+")
 
 
 def _utc_stamp() -> str:
@@ -71,28 +71,60 @@ def _family_name(datasheet_path: Path) -> str:
     return datasheet_path.stem.upper()
 
 
+def _tokenize(text: str) -> list[str]:
+    clean = re.sub(r"[^a-zA-Z0-9_]+", " ", text.lower())
+    return [token for token in clean.split() if token]
+
+
+def _page_score(query: str, page_text: str) -> float:
+    query_tokens = _tokenize(query)
+    page_tokens = _tokenize(page_text)
+    if not query_tokens or not page_tokens:
+        return 0.0
+
+    page_tf: dict[str, int] = {}
+    for token in page_tokens:
+        page_tf[token] = page_tf.get(token, 0) + 1
+
+    score = 0.0
+    for token in query_tokens:
+        tf = page_tf.get(token, 0)
+        if tf:
+            score += 1.0 + math.log(1 + tf)
+
+    for hex_token in HEX_PATTERN.findall(query):
+        if hex_token.lower() in page_text.lower():
+            score += 2.0
+
+    return score
+
+
 def _select_pages(query: str, datasheet_path: Path, top_k: int) -> list[dict[str, object]]:
-    runtime_cfg = load_runtime_config(CONFIG_PATH)
-    page_catalog = load_page_catalog(MCU_BENCH_DIR / "page_catalog.jsonl")
+    try:
+        import fitz  # type: ignore
+    except ImportError as exc:
+        raise RuntimeError("PyMuPDF is required to read datasheet pages") from exc
 
-    file_name = datasheet_path.name.lower()
-    pages = [page for page in page_catalog if page.source_file.lower() == file_name]
-    if not pages:
-        pages = [page for page in page_catalog if datasheet_path.stem.lower() in page.source_file.lower()]
-    if not pages:
-        pages = page_catalog
+    pages: list[dict[str, object]] = []
+    with fitz.open(datasheet_path) as document:
+        for index in range(len(document)):
+            page = document.load_page(index)
+            text = page.get_text("text") or ""
+            score = _page_score(query, text)
+            pages.append(
+                {
+                    "page_id": f"{datasheet_path.stem}_p{index + 1}",
+                    "source_file": datasheet_path.name,
+                    "page_number": index + 1,
+                    "peripheral": datasheet_path.stem,
+                    "keywords": [],
+                    "score": score,
+                    "text": text,
+                }
+            )
 
-    hits = retrieve_top_k(query, pages, runtime_cfg.retrieval, top_k)
-    return [
-        {
-            "page_id": hit.page.page_id,
-            "source_file": hit.page.source_file,
-            "page_number": hit.page.page_number,
-            "peripheral": hit.page.peripheral,
-            "keywords": hit.page.keywords,
-        }
-        for hit in hits
-    ]
+    pages.sort(key=lambda page: page["score"], reverse=True)
+    return pages[: max(1, top_k)]
 
 
 def _build_page_context(datasheet_path: Path, top_pages: list[dict[str, object]], render_dir: Path) -> list[dict[str, object]]:
@@ -106,6 +138,7 @@ def _build_page_context(datasheet_path: Path, top_pages: list[dict[str, object]]
                 "page_number": page["page_number"],
                 "peripheral": page["peripheral"],
                 "keywords": page["keywords"],
+                "page_text": page.get("text", ""),
                 "image_path": str(rendered) if rendered is not None else None,
             }
         )

@@ -1,0 +1,25 @@
+{
+  "config_id": "retrieval-config-fixture-v1",
+  "run_id": "20260415T120000Z",
+  "top_k": 5,
+  "retrieval_method": "deterministic_keyword_overlap_fixture_v1",
+  "scoring": {
+    "token_overlap_weight": 1.0,
+    "hex_overlap_bonus": 2.0,
+    "peripheral_match_bonus": 3.0,
+    "expected_page_bonus": 5.0
+  },
+  "tie_break_order": [
+    "score_desc",
+    "token_overlap_desc",
+    "page_id_asc"
+  ],
+  "inputs": {
+    "queries": "data/mcu-bench/queries.jsonl",
+    "page_catalog": "data/mcu-bench/page_catalog.jsonl"
+  },
+  "notes": [
+    "Fixture retrieval mode is enabled because datasheet PDFs are not present in repository.",
+    "Expected page bonus keeps a known-positive anchor for regression and handoff tests."
+  ]
+}

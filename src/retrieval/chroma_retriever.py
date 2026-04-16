@@ -9,6 +9,8 @@ from typing import Any
 
 from src.index.chroma_indexer import extract_pdf_pages, upsert_pdf_pages_to_chroma
 
+ROOT = Path(__file__).resolve().parents[2]
+
 HEX_PATTERN = re.compile(r"0x[0-9a-fA-F]+")
 
 
@@ -100,7 +102,7 @@ def retrieve_top_pages(
 
     chroma_path = Path(str(getattr(retrieval_cfg, "chroma_path", "data/chroma")))
     if not chroma_path.is_absolute():
-        chroma_path = Path.cwd() / chroma_path
+        chroma_path = ROOT / chroma_path
 
     collection_prefix = str(getattr(retrieval_cfg, "collection_prefix", "datasheet_pages"))
     collection_name = f"{collection_prefix}_{datasheet_path.stem.lower()}"

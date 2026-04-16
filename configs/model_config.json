@@ -1,11 +1,11 @@
 {
-  "version": "1.0",
-  "selected_provider": "llava",
+  "version": "1.1",
+  "selected_provider": "gemini",
   "providers": {
-    "openai": {
-      "model": "gpt-4o",
-      "api_key_env": "OPENAI_API_KEY",
-      "base_url": "https://api.openai.com/v1",
+    "gemini": {
+      "model": "gemini-2.0-flash",
+      "api_key_env": "GEMINI_API_KEY",
+      "base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
       "timeout_seconds": 60
     },
     "groq": {
@@ -14,32 +14,38 @@
       "base_url": "https://api.groq.com/openai/v1",
       "timeout_seconds": 60
     },
+    "openai": {
+      "model": "gpt-4o",
+      "api_key_env": "OPENAI_API_KEY",
+      "base_url": "https://api.openai.com/v1",
+      "timeout_seconds": 60
+    },
     "ollama": {
       "model": "qwen2.5:7b-instruct",
-      "endpoint_env": "OLLAMA_ENDPOINT",
+      "endpoint_env": "OLLAMA_CHAT_ENDPOINT",
       "timeout_seconds": 90
     },
     "llava": {
       "model": "llava:latest",
       "endpoint_env": "OLLAMA_ENDPOINT",
-      "timeout_seconds": 60
+      "timeout_seconds": 180
     }
   },
   "extraction": {
     "temperature": 0,
-    "max_attempts": 3,
+    "max_attempts": 2,
     "response_format": "json_object"
   },
   "retrieval": {
     "backend": "chroma",
-    "top_k": 3,
-    "lexical_weight": 0.55,
-    "semantic_weight": 0.45,
+    "top_k": 6,
+    "lexical_weight": 0.65,
+    "semantic_weight": 0.35,
     "hex_token_boost": 2.0,
     "rrf_k": 60,
     "chroma_path": "data/chroma",
     "collection_prefix": "datasheet_pages",
     "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
-    "semantic_candidates_multiplier": 5
+    "semantic_candidates_multiplier": 8
   }
 }

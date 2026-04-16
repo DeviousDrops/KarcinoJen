@@ -23,7 +23,7 @@ def render_pdf_page(pdf_path: Path, page_number: int, out_dir: Path) -> Path | N
         if index < 0 or index >= len(document):
             raise ValueError(f"Page {page_number} out of range for {pdf_path}")
         page = document.load_page(index)
-        pix = page.get_pixmap(dpi=300)
+        pix = page.get_pixmap(dpi=150)
         pix.save(output_path)
 
     return output_path

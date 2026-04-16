@@ -101,10 +101,89 @@ def _run_synthesis(validated_payload: dict[str, object], outdir: Path) -> subpro
                 str(input_path),
                 "--outdir",
                 str(outdir),
+                "--audit-trace",
             ],
             capture_output=True,
             text=True,
         )
+
+
+def _enrich_driver_with_groq(
+    validated_payload: dict[str, object],
+    outdir: Path,
+    groq_client: VLMClient,
+) -> None:
+    """Use Groq to generate an enriched driver.c with application guidance.
+
+    Reads the template-generated driver.c and the validated register JSON,
+    then asks Groq to produce an improved version with proper init logic,
+    usage comments, and bit-manipulation helpers.
+    """
+    driver_c_path = outdir / "driver.c"
+    driver_h_path = outdir / "driver.h"
+    if not driver_c_path.exists() or not driver_h_path.exists():
+        return
+
+    template_c = driver_c_path.read_text(encoding="utf-8")
+    template_h = driver_h_path.read_text(encoding="utf-8")
+
+    groq_prompt = (
+        "You are an embedded-systems C code generator.\n"
+        "You are given a register extraction JSON and a template driver skeleton.\n"
+        "Produce a complete, compilable driver.c that:\n"
+        "  1. Includes driver.h\n"
+        "  2. Implements each _init(), _read(), and _write() stub with correct\n"
+        "     bit-field manipulation using the #defines from driver.h\n"
+        "  3. Adds a brief inline comment per function explaining what the register does\n"
+        "  4. Does NOT change the #defines in driver.h\n"
+        "Return ONLY the C source code as plain text. No markdown fences."
+    )
+
+    evidence = json.dumps(
+        {
+            "validated_extraction": validated_payload,
+            "template_driver_h": template_h,
+            "template_driver_c": template_c,
+        },
+        indent=2,
+    )
+
+    # Groq uses the OpenAI-compatible text path; send as a plain text page.
+    page_context = [
+        {
+            "page_id": validated_payload.get("source_page_id", "extracted"),
+            "page_text": evidence,
+        }
+    ]
+
+    try:
+        response = groq_client.extract(
+            prompt_text=groq_prompt,
+            query="Generate enriched driver.c",
+            page_context=page_context,
+            mismatch_report=None,
+        )
+        # Groq returns JSON per our client contract; but for code generation
+        # we want raw text. Try to extract a 'code' or 'driver_c' key,
+        # or fall back to the full raw_text if it looks like C code.
+        raw = response.raw_text.strip()
+        if raw.startswith("#include") or "void " in raw:
+            driver_c_path.write_text(raw, encoding="utf-8")
+            print("[groq] driver.c enriched by Groq synthesis.")
+        elif isinstance(response.parsed_json, dict):
+            code = (
+                response.parsed_json.get("driver_c")
+                or response.parsed_json.get("code")
+                or response.parsed_json.get("content")
+            )
+            if code and isinstance(code, str) and "#include" in code:
+                driver_c_path.write_text(code, encoding="utf-8")
+                print("[groq] driver.c enriched by Groq synthesis.")
+            else:
+                print("[groq] Groq response did not contain valid C code; keeping template.")
+    except Exception as exc:
+        # Groq enrichment is best-effort; do not fail the whole pipeline.
+        print(f"[groq] Enrichment skipped: {exc}")
 
 
 def run_pipeline(args: argparse.Namespace) -> Path:
@@ -142,15 +221,30 @@ def run_pipeline(args: argparse.Namespace) -> Path:
         svd_path = _resolve_svd_path(datasheet_path)
         registers = load_svd_registers(str(svd_path))
         client = VLMClient(runtime_cfg.provider)
-        fallback_clients: list[VLMClient] = []
-        if runtime_cfg.selected_provider == "llava":
-            groq_provider = runtime_cfg.providers.get("groq")
-            if groq_provider is not None:
-                fallback_clients.append(VLMClient(groq_provider))
 
-            ollama_provider = runtime_cfg.providers.get("ollama")
-            if ollama_provider is not None:
-                fallback_clients.append(VLMClient(ollama_provider))
+        # Build fallback clients for the VLM extraction stage.
+        #
+        # Primary = gemini  →  fallback: groq (text-only, reliable, same free tier)
+        # Primary = llava   →  fallback: ollama (text) then groq
+        # Primary = groq    →  no extraction fallback (groq is already the fallback tier)
+        #
+        # Groq also runs a best-effort driver.c enrichment pass after synthesis.
+        fallback_clients: list[VLMClient] = []
+        selected = runtime_cfg.selected_provider
+
+        if selected == "gemini":
+            groq_fb = runtime_cfg.providers.get("groq")
+            if groq_fb is not None:
+                fallback_clients.append(VLMClient(groq_fb))
+
+        elif selected == "llava":
+            ollama_fb = runtime_cfg.providers.get("ollama")
+            if ollama_fb is not None:
+                fallback_clients.append(VLMClient(ollama_fb))
+            groq_fb = runtime_cfg.providers.get("groq")
+            if groq_fb is not None:
+                fallback_clients.append(VLMClient(groq_fb))
+
 
         stage5 = run_stage5_extraction(
             client=client,
@@ -186,6 +280,14 @@ def run_pipeline(args: argparse.Namespace) -> Path:
 
         if not (outdir / "driver.h").exists() or not (outdir / "driver.c").exists():
             raise RuntimeError("Synthesis completed but driver files were not created")
+
+        # Groq enrichment pass: ask Groq to generate a complete, annotated driver.c
+        # from the validated schema + template skeleton.  This is the primary use of
+        # the Groq API key and is the architectural step described in the README.
+        groq_provider = runtime_cfg.providers.get("groq")
+        if groq_provider is not None:
+            groq_client = VLMClient(groq_provider)
+            _enrich_driver_with_groq(validated_payload, outdir, groq_client)
 
         print(f"Query: {args.query}")
         print(f"Datasheet: {datasheet_path}")

@@ -27,19 +27,35 @@ from pathlib import Path
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
-def _parse_hex(value: str) -> int:
-    """Accept '0x40004400' or plain int strings."""
-    return int(value, 16) if isinstance(value, str) and value.startswith("0x") else int(value, 0)
+def _parse_hex(value: str | int) -> int:
+    """Accept '0x40004400', plain int strings, or native ints."""
+    if isinstance(value, int):
+        return value
+    return int(value, 16) if value.startswith("0x") else int(value, 10)
 
 
 def _bitmask(position: int, width: int) -> int:
     return ((1 << width) - 1) << position
 
 
+import re as _re
+
+_C_INVALID = _re.compile(r"[^A-Za-z0-9_]")
+
+
+def _safe_c_identifier(text: str) -> str:
+    """Replace any character not valid in a C identifier with underscore."""
+    safe = _C_INVALID.sub("_", text)
+    # Strip leading digits (macro starts with alpha or _)
+    if safe and safe[0].isdigit():
+        safe = "_" + safe
+    return safe.strip("_") or "FIELD"
+
+
 def _macro_prefix(peripheral: str, register_name: str) -> str:
     """Build a safe C macro prefix, e.g. USART2_CR1"""
-    p = peripheral.upper().replace(" ", "_")
-    r = register_name.upper().replace(" ", "_")
+    p = _safe_c_identifier(peripheral.upper())
+    r = _safe_c_identifier(register_name.upper())
     r_stripped = r
     for part in p.split("_"):
         if r_stripped.startswith(part + "_"):
@@ -109,7 +125,7 @@ def _synthesize_register(reg: dict) -> dict:
 
     # ── bit-field macros ────────────────────────────────────────────────────
     for bit in reg.get("bits", []):
-        name     = bit["name"].upper()
+        name     = _safe_c_identifier(bit["name"].upper())
         pos      = int(bit["position"])
         width    = int(bit["width"])
         access   = bit.get("access", "RW")

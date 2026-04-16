@@ -1,0 +1,212 @@
+{
+  "samples": [
+    {
+      "id": "q1",
+      "query": "Extract USART2 CR1 register fields",
+      "v1_output": {
+        "peripheral": "USART2",
+        "register_name": "USART_CR1",
+        "base_address": "0x40004400",
+        "offset": "0x00",
+        "bits": [
+          { "name": "UE", "position": 0, "width": 1, "access": "RW" }
+        ]
+      },
+      "v2_output": {
+        "peripheral": "USART2",
+        "register_name": "USART_CR1",
+        "base_address": "0x40004400",
+        "offset": "0x00",
+        "bits": [
+          { "name": "UE", "position": 0, "width": 1, "access": "RW" },
+          { "name": "RE", "position": 2, "width": 1, "access": "RW" },
+          { "name": "TE", "position": 3, "width": 1, "access": "RW" }
+        ],
+        "timing_constraints": [
+          {
+            "name": "fPCLK_max",
+            "min": null,
+            "typ": null,
+            "max": 80000000,
+            "unit": "Hz",
+            "condition": "VDD >= 2.7V"
+          }
+        ]
+      }
+    },
+    {
+      "id": "q2",
+      "query": "Extract USART2 CR1 base address",
+      "v1_output": {
+        "peripheral": "USART2",
+        "register_name": "USART_CR1",
+        "base_address": "40004400",
+        "offset": "0x00",
+        "bits": [
+          { "name": "UE", "position": 0, "width": 1, "access": "RW" }
+        ]
+      },
+      "v2_output": {
+        "peripheral": "USART2",
+        "register_name": "USART_CR1",
+        "base_address": "0x40004400",
+        "offset": "0x00",
+        "bits": [
+          { "name": "UE", "position": 0, "width": 1, "access": "RW" }
+        ]
+      }
+    },
+    {
+      "id": "q3",
+      "query": "Extract USART2 control bits",
+      "v1_output": {
+        "peripheral": "USART2",
+        "register_name": "USART_CR1",
+        "base_address": "0x40004400",
+        "offset": "0x00",
+        "bits": [
+          { "name": "UE", "position": "0", "width": 1, "access": "RW" }
+        ]
+      },
+      "v2_output": {
+        "peripheral": "USART2",
+        "register_name": "USART_CR1",
+        "base_address": "0x40004400",
+        "offset": "0x00",
+        "bits": [
+          { "name": "UE", "position": 0, "width": 1, "access": "RW" },
+          { "name": "M1", "position": 28, "width": 1, "access": "RW" }
+        ]
+      }
+    },
+    {
+      "id": "q4",
+      "query": "Extract USART2 timing and bits",
+      "v1_output": {
+        "peripheral": "USART2",
+        "register_name": "USART_CR1",
+        "base_address": "0x40004400",
+        "offset": "0x00",
+        "bits": [
+          { "name": "UE", "position": 0, "width": 0, "access": "RW" }
+        ]
+      },
+      "v2_output": {
+        "peripheral": "USART2",
+        "register_name": "USART_CR1",
+        "base_address": "0x40004400",
+        "offset": "0x00",
+        "bits": [
+          { "name": "UE", "position": 0, "width": 1, "access": "RW" }
+        ],
+        "timing_constraints": [
+          {
+            "name": "tSU",
+            "min": 10,
+            "typ": 20,
+            "max": 30,
+            "unit": "ns"
+          }
+        ]
+      }
+    },
+    {
+      "id": "q5",
+      "query": "Extract neighboring peripheral table",
+      "v1_output": {
+        "peripheral": "I2C1",
+        "register_name": "I2C_CR1",
+        "base_address": "0x40005400",
+        "offset": "0x00",
+        "bits": "bad"
+      },
+      "v2_output": {
+        "peripheral": "I2C1",
+        "register_name": "I2C_CR1",
+        "base_address": "0x40005400",
+        "offset": "0x00",
+        "bits": [
+          { "name": "PE", "position": 0, "width": 1, "access": "RW" }
+        ]
+      }
+    }
+  ],
+  "injected_failures": [
+    {
+      "id": "f1_address_drift",
+      "expected_failure_type": "Address Drift",
+      "output": {
+        "peripheral": "USART2",
+        "register_name": "USART_CR1",
+        "base_address": "0x40004800",
+        "offset": "0x00",
+        "bits": [
+          { "name": "UE", "position": 0, "width": 1, "access": "RW" }
+        ]
+      }
+    },
+    {
+      "id": "f2_layout_confusion",
+      "expected_failure_type": "Layout Confusion",
+      "output": {
+        "peripheral": "USART2",
+        "register_name": "USART_CR1",
+        "base_address": "0x40004400",
+        "offset": "0x00",
+        "bits": [
+          { "name": "UE", "position": 0, "width": 4, "access": "RW" },
+          { "name": "RE", "position": 2, "width": 2, "access": "RW" }
+        ]
+      }
+    },
+    {
+      "id": "f3_context_bleed",
+      "expected_failure_type": "Context Bleed",
+      "output": {
+        "peripheral": "USART2",
+        "register_name": "ADC_DR",
+        "base_address": "0x40004400",
+        "offset": "0x00",
+        "bits": [
+          { "name": "DIV", "position": 0, "width": 16, "access": "RW" }
+        ]
+      }
+    }
+  ],
+  "cove_cases": [
+    {
+      "id": "c1_fixable",
+      "expected_outcome": "PASS",
+      "initial_output": {
+        "peripheral": "USART2",
+        "register_name": "USART_CRI",
+        "base_address": "0x40004800",
+        "offset": "0x00",
+        "bits": [
+          { "name": "UE", "position": 0, "width": 4, "access": "RW" },
+          { "name": "RE", "position": 2, "width": 2, "access": "RW" }
+        ],
+        "timing_constraints": [
+          {
+            "name": "tSU",
+            "min": 50,
+            "typ": 40,
+            "max": 30,
+            "unit": "ns"
+          }
+        ]
+      }
+    },
+    {
+      "id": "c2_uncertain",
+      "expected_outcome": "UNCERTAIN",
+      "initial_output": {
+        "peripheral": "USART2",
+        "register_name": "UNKNOWN_REG",
+        "base_address": "0xZZZZ",
+        "offset": "0x00",
+        "bits": "unparseable"
+      }
+    }
+  ]
+}

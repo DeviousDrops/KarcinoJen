@@ -1,0 +1,241 @@
+{
+  "cases": [
+    {
+      "case_id": "c1_fixable",
+      "attempts": [
+        {
+          "attempt": 1,
+          "input": {
+            "peripheral": "USART2",
+            "register_name": "USART_CRI",
+            "base_address": "0x40004800",
+            "offset": "0x00",
+            "bits": [
+              {
+                "name": "UE",
+                "position": 0,
+                "width": 4,
+                "access": "RW"
+              },
+              {
+                "name": "RE",
+                "position": 2,
+                "width": 2,
+                "access": "RW"
+              }
+            ],
+            "timing_constraints": [
+              {
+                "name": "tSU",
+                "min": 50,
+                "typ": 40,
+                "max": 30,
+                "unit": "ns"
+              }
+            ]
+          },
+          "validation": {
+            "status": "FAIL",
+            "checks": {
+              "name_fuzzy": {
+                "ok": true,
+                "expected": "USART_CR1",
+                "actual": "USART_CRI",
+                "distance": 1,
+                "threshold": 2
+              },
+              "address_range": {
+                "ok": false,
+                "expected": "0x40004400",
+                "actual": "0x40004800",
+                "expected_base_address": "0x40004400",
+                "expected_offset": "0x00",
+                "peripheral": "USART2"
+              },
+              "bit_arithmetic": {
+                "ok": false,
+                "register_size": 32,
+                "reason": "bits[1] overlaps at bit position 2; bits[1] overlaps at bit position 3"
+              },
+              "timing_consistency": {
+                "ok": false,
+                "reason": "min greater than typ in timing_constraints[0]"
+              }
+            },
+            "message": "failed checks: address_range, bit_arithmetic, timing_consistency"
+          }
+        },
+        {
+          "attempt": 2,
+          "input": {
+            "peripheral": "USART2",
+            "register_name": "USART_CRI",
+            "base_address": "0x40004400",
+            "offset": "0x00",
+            "bits": [
+              {
+                "name": "UE",
+                "position": 0,
+                "width": 4,
+                "access": "RW"
+              }
+            ],
+            "timing_constraints": [
+              {
+                "name": "tSU",
+                "min": 30,
+                "typ": 40.0,
+                "max": 50,
+                "unit": "ns"
+              }
+            ]
+          },
+          "validation": {
+            "status": "PASS",
+            "checks": {
+              "name_fuzzy": {
+                "ok": true,
+                "expected": "USART_CR1",
+                "actual": "USART_CRI",
+                "distance": 1,
+                "threshold": 2
+              },
+              "address_range": {
+                "ok": true,
+                "expected": "0x40004400",
+                "actual": "0x40004400",
+                "expected_base_address": "0x40004400",
+                "expected_offset": "0x00",
+                "peripheral": "USART2"
+              },
+              "bit_arithmetic": {
+                "ok": true,
+                "register_size": 32,
+                "reason": ""
+              },
+              "timing_consistency": {
+                "ok": true
+              }
+            },
+            "message": "validation passed"
+          }
+        }
+      ],
+      "final_status": "PASS"
+    },
+    {
+      "case_id": "c2_uncertain",
+      "attempts": [
+        {
+          "attempt": 1,
+          "input": {
+            "peripheral": "USART2",
+            "register_name": "UNKNOWN_REG",
+            "base_address": "0xZZZZ",
+            "offset": "0x00",
+            "bits": "unparseable"
+          },
+          "validation": {
+            "status": "FAIL",
+            "checks": {
+              "name_fuzzy": {
+                "ok": false,
+                "expected": "USART_CR1",
+                "actual": "UNKNOWN_REG",
+                "distance": 9,
+                "threshold": 2
+              },
+              "address_range": {
+                "ok": false,
+                "reason": "base_address or offset is not a valid hex string"
+              },
+              "bit_arithmetic": {
+                "ok": false,
+                "register_size": 32,
+                "reason": "bits is not an array"
+              },
+              "timing_consistency": {
+                "ok": true,
+                "reason": "timing constraints missing (optional)"
+              }
+            },
+            "message": "failed checks: name_fuzzy, address_range, bit_arithmetic"
+          }
+        },
+        {
+          "attempt": 2,
+          "input": {
+            "peripheral": "USART2",
+            "register_name": "USART_CR1",
+            "base_address": "0xZZZZ",
+            "offset": "0x00",
+            "bits": "unparseable"
+          },
+          "validation": {
+            "status": "FAIL",
+            "checks": {
+              "name_fuzzy": {
+                "ok": true,
+                "expected": "USART_CR1",
+                "actual": "USART_CR1",
+                "distance": 0,
+                "threshold": 2
+              },
+              "address_range": {
+                "ok": false,
+                "reason": "base_address or offset is not a valid hex string"
+              },
+              "bit_arithmetic": {
+                "ok": false,
+                "register_size": 32,
+                "reason": "bits is not an array"
+              },
+              "timing_consistency": {
+                "ok": true,
+                "reason": "timing constraints missing (optional)"
+              }
+            },
+            "message": "failed checks: address_range, bit_arithmetic"
+          }
+        },
+        {
+          "attempt": 3,
+          "input": {
+            "peripheral": "USART2",
+            "register_name": "USART_CR1",
+            "base_address": "0xZZZZ",
+            "offset": "0x00",
+            "bits": "unparseable"
+          },
+          "validation": {
+            "status": "FAIL",
+            "checks": {
+              "name_fuzzy": {
+                "ok": true,
+                "expected": "USART_CR1",
+                "actual": "USART_CR1",
+                "distance": 0,
+                "threshold": 2
+              },
+              "address_range": {
+                "ok": false,
+                "reason": "base_address or offset is not a valid hex string"
+              },
+              "bit_arithmetic": {
+                "ok": false,
+                "register_size": 32,
+                "reason": "bits is not an array"
+              },
+              "timing_consistency": {
+                "ok": true,
+                "reason": "timing constraints missing (optional)"
+              }
+            },
+            "message": "failed checks: address_range, bit_arithmetic"
+          }
+        }
+      ],
+      "final_status": "UNCERTAIN"
+    }
+  ]
+}

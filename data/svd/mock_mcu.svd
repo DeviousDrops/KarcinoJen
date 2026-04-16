@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<device>
+  <name>MockMCU</name>
+  <peripherals>
+    <peripheral>
+      <name>USART2</name>
+      <baseAddress>0x40004400</baseAddress>
+      <registers>
+        <register>
+          <name>USART_CR1</name>
+          <addressOffset>0x0</addressOffset>
+          <size>32</size>
+        </register>
+      </registers>
+    </peripheral>
+    <peripheral>
+      <name>I2C1</name>
+      <baseAddress>0x40005400</baseAddress>
+      <registers>
+        <register>
+          <name>I2C_CR1</name>
+          <addressOffset>0x0</addressOffset>
+          <size>32</size>
+        </register>
+      </registers>
+    </peripheral>
+  </peripherals>
+</device>

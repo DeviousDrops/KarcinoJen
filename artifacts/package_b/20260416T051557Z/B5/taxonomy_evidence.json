@@ -1,0 +1,37 @@
+{
+  "rows": [
+    {
+      "source": "B3",
+      "id": "f1_address_drift",
+      "category": "Address Drift",
+      "validator_caught": true,
+      "snippet": "failed checks: address_range"
+    },
+    {
+      "source": "B3",
+      "id": "f2_layout_confusion",
+      "category": "Layout Confusion",
+      "validator_caught": true,
+      "snippet": "failed checks: bit_arithmetic"
+    },
+    {
+      "source": "B3",
+      "id": "f3_context_bleed",
+      "category": "Address Drift",
+      "validator_caught": true,
+      "snippet": "failed checks: name_fuzzy, address_range"
+    },
+    {
+      "source": "B4",
+      "id": "c2_uncertain",
+      "category": "Address Drift",
+      "validator_caught": true,
+      "snippet": "failed checks: address_range, bit_arithmetic"
+    }
+  ],
+  "coverage": {
+    "Address Drift": 3,
+    "Layout Confusion": 1,
+    "Context Bleed": 0
+  }
+}

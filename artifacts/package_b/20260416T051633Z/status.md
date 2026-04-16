@@ -1,0 +1,7 @@
+- Current module: B5
+- Scope completed: {'module': 'B5', 'rows': 4, 'coverage': {'Address Drift': 2, 'Layout Confusion': 1, 'Context Bleed': 1}, 'done_check': 'taxonomy table and evidence snippets are paper-ready'}
+- Open risk: Synthetic fixtures may not represent full retrieval variance.
+- Next exact command/action: python scripts/run_package_b.py
+- Artifact paths produced:
+  - artifacts/package_b/20260416T051633Z/B5/taxonomy_evidence.md
+  - artifacts/package_b/20260416T051633Z/B5/taxonomy_evidence.json

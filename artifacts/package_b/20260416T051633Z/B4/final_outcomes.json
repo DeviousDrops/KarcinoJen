@@ -1,0 +1,44 @@
+{
+  "cases": [
+    {
+      "case_id": "c1_fixable",
+      "expected_outcome": "PASS",
+      "actual_outcome": "PASS",
+      "final_output": {
+        "peripheral": "USART2",
+        "register_name": "USART_CRI",
+        "base_address": "0x40004400",
+        "offset": "0x00",
+        "bits": [
+          {
+            "name": "UE",
+            "position": 0,
+            "width": 4,
+            "access": "RW"
+          }
+        ],
+        "timing_constraints": [
+          {
+            "name": "tSU",
+            "min": 30,
+            "typ": 40.0,
+            "max": 50,
+            "unit": "ns"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "c2_uncertain",
+      "expected_outcome": "UNCERTAIN",
+      "actual_outcome": "UNCERTAIN",
+      "final_output": {
+        "peripheral": "USART2",
+        "register_name": "USART_CR1",
+        "base_address": "0xZZZZ",
+        "offset": "0x00",
+        "bits": "unparseable"
+      }
+    }
+  ]
+}

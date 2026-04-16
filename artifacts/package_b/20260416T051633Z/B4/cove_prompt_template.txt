@@ -1,4 +1,0 @@
-Previous extraction failed deterministic validation.
-Fix only the reported mismatches and return strict JSON.
-Mismatch report:
-{mismatch_report}

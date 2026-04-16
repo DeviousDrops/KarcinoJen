@@ -1,95 +1,56 @@
 # KarcinoJen
 
-KarcinoJen is a research prototype for generating traceable MCU driver artifacts from datasheet-derived register data.
+KarcinoJen turns a datasheet and a natural-language register query into generated driver code.
 
-## Current Repository State
+## What It Does
 
-Implemented now:
-- Package A data assets: benchmark manifest, query set, page catalog, and ground-truth JSONL.
-- Package B core reliability code: schema harness, deterministic SVD validator, CoVe loop, taxonomy evidence runner.
-- Package C synthesis and demo: C code generator and deterministic replay/live demo scripts.
-- Integrated runner: one command that stitches A+B+C artifacts with config-driven retrieval and optional live VLM extraction.
-- Retrieval runtime modules: page catalog index loader and hybrid lexical+semantic retrieval with reciprocal-rank fusion.
-- Stage 5 extraction modules: provider-based VLM client for OpenAI GPT-4o or LLaVA endpoints.
+The supported flow is a single path:
+- input a datasheet PDF
+- ask for the register or peripheral you want
+- retrieve the relevant page context
+- run VLM-based extraction with validation feedback
+- generate `driver.h` and `driver.c`
 
-Not implemented yet:
-- Embedding/vector retrieval stack (for example ColPali + ChromaDB).
-- Full visual prompt formatting beyond current page-context packaging.
+## What It Keeps
 
-## Inputs
+Only the files that matter for the final driver output are kept by default:
+- `driver.h`
+- `driver.c`
 
-Primary project input conceptually:
-- MCU datasheet PDF.
+Everything else is internal implementation detail or temporary scratch space.
 
-Inputs currently used by code:
-- A query and benchmark assets in data/mcu-bench/.
-- SVD files in data/svd/.
-- Fixture extraction payloads for deterministic runs.
-- Versioned runtime model/retrieval config in configs/model_config.json.
+## Current Runtime Pieces
 
-## Model Usage Right Now
+- Retrieval: [src/index/page_index.py](src/index/page_index.py) and [src/retrieval/hybrid_retriever.py](src/retrieval/hybrid_retriever.py)
+- Extraction: [src/extractor/vlm_client.py](src/extractor/vlm_client.py) and [src/extractor/vlm_extractor.py](src/extractor/vlm_extractor.py)
+- Validation guardrails: [src/extractor/schema_harness.py](src/extractor/schema_harness.py) and [src/validator/svd_validator.py](src/validator/svd_validator.py)
+- Synthesis: [src/synthesis/synthesize.py](src/synthesis/synthesize.py)
 
-- CoVe: yes, implemented in src/orchestration/cove_loop.py as deterministic correction logic with max 3 attempts.
-- VLM: called in vlm-live mode through src/extractor/vlm_client.py (OpenAI or LLaVA, based on config).
-- LLM: no separate LLM call path; extraction uses the configured VLM endpoint.
+## Configuration
+
+Model and retry settings live in [configs/model_config.json](configs/model_config.json).
+
+OpenAI mode uses `OPENAI_API_KEY`.
+LLaVA mode uses `LLAVA_ENDPOINT`.
 
 ## How To Run
 
-From repository root:
+From the repository root, run:
 
-1) Run integrated A+B+C pipeline (ground-truth backed deterministic run)
+```powershell
+python scripts/run_pipeline.py --datasheet data/datasheets/stm32f401-rm.pdf --query "Extract GPIOA MODER register bit layout for pins 0 to 3 and explain mode encoding width per pin."
+```
 
-python scripts/run_pipeline.py --mode ground-truth --query-id mcu_bench_005
+The generated driver files are written under `generated/drivers/<timestamp>/` by default.
 
-Artifacts are written to runs/pipeline/<timestamp>/.
+If you want to change the output location:
 
-2) Run integrated pipeline with live Stage 5 VLM extraction
+```powershell
+python scripts/run_pipeline.py --datasheet data/datasheets/stm32f401-rm.pdf --query "Extract USART2 CR1 control bits including UE, M, PCE, TE, and RE with bit positions." --outdir generated/my-driver
+```
 
-Set provider credentials first (depends on configs/model_config.json):
+## Notes
 
-PowerShell (OpenAI):
-$env:OPENAI_API_KEY="<your_key>"
-
-PowerShell (LLaVA endpoint mode):
-$env:LLAVA_ENDPOINT="http://localhost:11434/api/generate"
-
-Then run:
-
-python scripts/run_pipeline.py --mode vlm-live --query-id mcu_bench_005 --top-k 3
-
-3) Run Package B reliability artifacts only
-
-python scripts/run_package_b.py
-
-Artifacts are written to artifacts/package_b/<timestamp>/.
-
-4) Run synthesis demo (Package C)
-
-python scripts/run_demo.py --replay
-
-or live synthesis with fixture:
-
-python scripts/run_demo.py --input tests/fixtures/validated_stm32l4.json
-
-## Tests
-
-python -m unittest discover -s tests/unit -p "test_*.py"
-python -m unittest discover -s tests/integration -p "test_*.py"
-
-## Key Paths
-
-- docs/architecture.md
-- configs/model_config.json
-- data/mcu-bench/queries.jsonl
-- data/mcu-bench/ground_truth.jsonl
-- src/index/page_index.py
-- src/retrieval/hybrid_retriever.py
-- src/extractor/model_config.py
-- src/extractor/vlm_client.py
-- src/extractor/vlm_extractor.py
-- src/validator/svd_validator.py
-- src/orchestration/cove_loop.py
-- src/synthesis/synthesize.py
-- scripts/run_pipeline.py
-- scripts/run_package_b.py
-- scripts/run_demo.py
+- The old benchmark-style package runners and replay modes are no longer the main path.
+- The pipeline keeps validation as a guardrail, but it is not exposed as a separate mode.
+- You still need a configured Python 3.11 environment with the project dependencies installed.

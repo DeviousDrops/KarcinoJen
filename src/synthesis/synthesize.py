@@ -239,6 +239,8 @@ def main():
                         help="Path(s) to validated JSON file(s)")
     parser.add_argument("--outdir", required=True,
                         help="Output directory")
+    parser.add_argument("--audit-trace", action="store_true",
+                        help="Write audit_trace.json alongside driver.h and driver.c")
     args = parser.parse_args()
 
     os.makedirs(args.outdir, exist_ok=True)
@@ -276,7 +278,8 @@ def main():
 
     _write_driver_h(all_results, str(h_path))
     _write_driver_c(all_results, "driver.h", str(c_path))
-    _write_audit_trace(all_results, loaded_files, str(trace_path))
+    if args.audit_trace:
+        _write_audit_trace(all_results, loaded_files, str(trace_path))
 
     total_syms = sum(len(r["symbols"]) for r in all_results)
     print(f"[synthesize] done.")
@@ -285,7 +288,8 @@ def main():
     print(f"  symbols emitted       : {total_syms}")
     print(f"  driver.h              : {h_path}")
     print(f"  driver.c              : {c_path}")
-    print(f"  audit_trace.json      : {trace_path}")
+    if args.audit_trace:
+        print(f"  audit_trace.json      : {trace_path}")
 
 
 if __name__ == "__main__":

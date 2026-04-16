@@ -1,5 +1,0 @@
-{
-  "return_code": 0,
-  "stdout": "[synthesize] loaded 1 register(s) from C:\\Users\\Kartik Palcharla\\karcinojen\\KarcinoJen\\runs\\pipeline\\20260416T061805Z\\B\\validated_for_synthesis.json\n[synthesize] done.\n  registers synthesized : 1\n  registers skipped     : 0\n  symbols emitted       : 11\n  driver.h              : C:\\Users\\Kartik Palcharla\\karcinojen\\KarcinoJen\\runs\\pipeline\\20260416T061805Z\\C\\synthesis\\driver.h\n  driver.c              : C:\\Users\\Kartik Palcharla\\karcinojen\\KarcinoJen\\runs\\pipeline\\20260416T061805Z\\C\\synthesis\\driver.c\n  audit_trace.json      : C:\\Users\\Kartik Palcharla\\karcinojen\\KarcinoJen\\runs\\pipeline\\20260416T061805Z\\C\\synthesis\\audit_trace.json\n",
-  "stderr": ""
-}

@@ -1,7 +1,0 @@
-- Current module: B4
-- Scope completed: {'module': 'B4', 'cases': 2, 'corrected': 1, 'uncertain': 1, 'done_check': 'max 3 retries and deterministic fail-closed behavior'}
-- Open risk: Synthetic fixtures may not represent full retrieval variance.
-- Next exact command/action: python scripts/run_package_b.py
-- Artifact paths produced:
-  - artifacts/package_b/20260416T051557Z/B4/retry_logs.json
-  - artifacts/package_b/20260416T051557Z/B4/final_outcomes.json

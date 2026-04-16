@@ -46,3 +46,14 @@ coverage/
 
 # Logs
 *.log
+
+# Local dataset assets (do not commit binaries)
+data/datasheets/*.pdf
+data/datasheets/*.PDF
+data/svd/*.svd
+data/svd/*.SVD
+
+# Generated benchmark run artifacts
+data/mcu-bench/runs/*/
+data/mcu-bench/runs/*/**
+!data/mcu-bench/runs/.gitignore

@@ -57,3 +57,9 @@ data/svd/*.SVD
 data/mcu-bench/runs/*/
 data/mcu-bench/runs/*/**
 !data/mcu-bench/runs/.gitignore
+
+# Local vector store and retrieval comparison outputs
+data/chroma/*
+!data/chroma/.gitignore
+runs/retrieval_compare/*
+!runs/retrieval_compare/.gitignore

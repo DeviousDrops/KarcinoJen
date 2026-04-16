@@ -10,11 +10,9 @@ from __future__ import annotations
 
 import argparse
 import json
-import math
 import subprocess
 import sys
 import tempfile
-import re
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -26,6 +24,7 @@ from src.extractor.model_config import load_runtime_config
 from src.extractor.vlm_client import VLMClient
 from src.extractor.vlm_extractor import run_stage5_extraction
 from src.ingest.pdf_page_renderer import render_pdf_page
+from src.retrieval.chroma_retriever import retrieve_top_pages
 from src.validator.svd_validator import load_svd_registers
 
 DATA_ROOT = ROOT / "data"
@@ -34,7 +33,6 @@ SVD_DIR = DATA_ROOT / "svd"
 CONFIG_PATH = ROOT / "configs" / "model_config.json"
 SYNTHESIZE_SCRIPT = ROOT / "src" / "synthesis" / "synthesize.py"
 DEFAULT_OUTDIR = ROOT / "generated" / "drivers"
-HEX_PATTERN = re.compile(r"0x[0-9a-fA-F]+")
 
 
 def _utc_stamp() -> str:
@@ -69,62 +67,6 @@ def _family_name(datasheet_path: Path) -> str:
     if "rp2040" in stem:
         return "RP2040"
     return datasheet_path.stem.upper()
-
-
-def _tokenize(text: str) -> list[str]:
-    clean = re.sub(r"[^a-zA-Z0-9_]+", " ", text.lower())
-    return [token for token in clean.split() if token]
-
-
-def _page_score(query: str, page_text: str) -> float:
-    query_tokens = _tokenize(query)
-    page_tokens = _tokenize(page_text)
-    if not query_tokens or not page_tokens:
-        return 0.0
-
-    page_tf: dict[str, int] = {}
-    for token in page_tokens:
-        page_tf[token] = page_tf.get(token, 0) + 1
-
-    score = 0.0
-    for token in query_tokens:
-        tf = page_tf.get(token, 0)
-        if tf:
-            score += 1.0 + math.log(1 + tf)
-
-    for hex_token in HEX_PATTERN.findall(query):
-        if hex_token.lower() in page_text.lower():
-            score += 2.0
-
-    return score
-
-
-def _select_pages(query: str, datasheet_path: Path, top_k: int) -> list[dict[str, object]]:
-    try:
-        import fitz  # type: ignore
-    except ImportError as exc:
-        raise RuntimeError("PyMuPDF is required to read datasheet pages") from exc
-
-    pages: list[dict[str, object]] = []
-    with fitz.open(datasheet_path) as document:
-        for index in range(len(document)):
-            page = document.load_page(index)
-            text = page.get_text("text") or ""
-            score = _page_score(query, text)
-            pages.append(
-                {
-                    "page_id": f"{datasheet_path.stem}_p{index + 1}",
-                    "source_file": datasheet_path.name,
-                    "page_number": index + 1,
-                    "peripheral": datasheet_path.stem,
-                    "keywords": [],
-                    "score": score,
-                    "text": text,
-                }
-            )
-
-    pages.sort(key=lambda page: page["score"], reverse=True)
-    return pages[: max(1, top_k)]
 
 
 def _build_page_context(datasheet_path: Path, top_pages: list[dict[str, object]], render_dir: Path) -> list[dict[str, object]]:
@@ -168,8 +110,28 @@ def _run_synthesis(validated_payload: dict[str, object], outdir: Path) -> subpro
 def run_pipeline(args: argparse.Namespace) -> Path:
     runtime_cfg = load_runtime_config(CONFIG_PATH)
     datasheet_path = _resolve_datasheet_path(args.datasheet)
-    top_k = args.top_k or runtime_cfg.retrieval.top_k
-    top_pages = _select_pages(args.query, datasheet_path, top_k)
+    if args.top_k is not None:
+        # Keep CLI override behavior while still using configured backend and fusion weights.
+        retrieval_cfg = runtime_cfg.retrieval.__class__(
+            top_k=args.top_k,
+            lexical_weight=runtime_cfg.retrieval.lexical_weight,
+            semantic_weight=runtime_cfg.retrieval.semantic_weight,
+            hex_token_boost=runtime_cfg.retrieval.hex_token_boost,
+            rrf_k=runtime_cfg.retrieval.rrf_k,
+            backend=runtime_cfg.retrieval.backend,
+            chroma_path=runtime_cfg.retrieval.chroma_path,
+            collection_prefix=runtime_cfg.retrieval.collection_prefix,
+            embedding_model=runtime_cfg.retrieval.embedding_model,
+            semantic_candidates_multiplier=runtime_cfg.retrieval.semantic_candidates_multiplier,
+        )
+    else:
+        retrieval_cfg = runtime_cfg.retrieval
+
+    top_pages = retrieve_top_pages(
+        query=args.query,
+        datasheet_path=datasheet_path,
+        retrieval_cfg=retrieval_cfg,
+    )
 
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_root = Path(temp_dir)
@@ -180,9 +142,19 @@ def run_pipeline(args: argparse.Namespace) -> Path:
         svd_path = _resolve_svd_path(datasheet_path)
         registers = load_svd_registers(str(svd_path))
         client = VLMClient(runtime_cfg.provider)
+        fallback_clients: list[VLMClient] = []
+        if runtime_cfg.selected_provider == "llava":
+            groq_provider = runtime_cfg.providers.get("groq")
+            if groq_provider is not None:
+                fallback_clients.append(VLMClient(groq_provider))
+
+            ollama_provider = runtime_cfg.providers.get("ollama")
+            if ollama_provider is not None:
+                fallback_clients.append(VLMClient(ollama_provider))
 
         stage5 = run_stage5_extraction(
             client=client,
+            fallback_clients=fallback_clients or None,
             extraction_cfg=runtime_cfg.extraction,
             query=args.query,
             page_context=page_context,

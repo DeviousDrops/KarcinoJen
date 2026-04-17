@@ -1,12 +1,21 @@
-"""Deterministic CoVe correction loop with max-3 retry cap."""
+"""Deterministic CoVe correction loop with VLM re-prompt and max-3 retry cap.
+
+Architecture Stage 7: On validation failure, inject the mismatch report back
+to the VLM extractor as explicit correction context, retry up to 3 times.
+Falls back to deterministic patching if no VLM client is provided.
+"""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Any
 import copy
+import json
+import logging
 
 from src.validator.svd_validator import RegisterDef, ValidationResult, validate_extraction
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -49,6 +58,7 @@ def apply_deterministic_correction(
     validation: ValidationResult,
     matched_register: RegisterDef,
 ) -> dict[str, Any]:
+    """Apply deterministic corrections based on SVD validation results."""
     corrected = copy.deepcopy(extraction)
     checks = validation.checks
     name_check = checks.get("name_fuzzy", {})
@@ -91,12 +101,45 @@ def apply_deterministic_correction(
     return corrected
 
 
+def _build_mismatch_report(validation: ValidationResult) -> dict[str, Any]:
+    """Build a machine-readable mismatch report for VLM re-prompt."""
+    failed_checks = {
+        name: details
+        for name, details in validation.checks.items()
+        if not bool(details.get("ok"))
+    }
+    return {
+        "status": validation.status,
+        "checks": failed_checks,
+        "message": validation.message,
+    }
+
+
 def run_cove_loop(
     initial_extraction: dict[str, Any],
     registers: dict[str, RegisterDef],
     *,
     max_attempts: int = 3,
+    vlm_client: Any | None = None,
+    fallback_clients: list[Any] | None = None,
+    query: str = "",
+    page_context: list[dict[str, Any]] | None = None,
 ) -> CoVeOutcome:
+    """Run the CoVe correction loop with VLM re-prompt and deterministic fallback.
+
+    Architecture Stage 7:
+    - On validation failure, inject mismatch report back to VLM as correction context
+    - If VLM re-prompt fails or no VLM client provided, apply deterministic correction
+    - Max 3 iterations, then emit UNCERTAIN
+
+    Args:
+        initial_extraction: The initial extraction JSON to validate and correct
+        registers: SVD register definitions for validation
+        max_attempts: Maximum retry iterations (must be 3 per architecture)
+        vlm_client: Optional VLMClient for re-extraction with mismatch context
+        query: Original query string (needed for VLM re-prompt)
+        page_context: Retrieved page context (needed for VLM re-prompt)
+    """
     if max_attempts != 3:
         raise ValueError("Package B hard constraint: max_attempts must be exactly 3")
 
@@ -124,6 +167,60 @@ def run_cove_loop(
         if not match_key or match_key not in registers:
             break
 
+        # ── VLM re-prompt path (Stage 7 architecture) ────────────────────
+        if vlm_client is not None and query and page_context:
+            mismatch_report = _build_mismatch_report(validation)
+            from src.extractor.prompt_bank import COVE_PROMPT_TEMPLATE
+            cove_prompt = COVE_PROMPT_TEMPLATE.format(
+                mismatch_report=json.dumps(mismatch_report, indent=2)
+            )
+
+            candidates: list[Any] = [vlm_client]
+            if fallback_clients:
+                for candidate in fallback_clients:
+                    if candidate is vlm_client:
+                        continue
+                    candidates.append(candidate)
+
+            vlm_succeeded = False
+            for candidate in candidates:
+                provider_name = getattr(getattr(candidate, "provider", None), "name", "unknown")
+                logger.info(
+                    "CoVe attempt %d: VLM re-prompt via %s [%s]",
+                    attempt,
+                    provider_name,
+                    validation.message,
+                )
+                try:
+                    response = candidate.extract(
+                        prompt_text=cove_prompt,
+                        query=query,
+                        page_context=page_context,
+                        mismatch_report=mismatch_report,
+                    )
+
+                    if response.parsed_json and isinstance(response.parsed_json, dict):
+                        current = response.parsed_json
+                        vlm_succeeded = True
+                        logger.info(
+                            "CoVe attempt %d: corrected extraction accepted from %s",
+                            attempt,
+                            provider_name,
+                        )
+                        break
+                except Exception as exc:
+                    logger.warning(
+                        "CoVe attempt %d: %s re-prompt failed (%s)",
+                        attempt,
+                        provider_name,
+                        exc,
+                    )
+
+            if vlm_succeeded:
+                continue
+
+        # ── Deterministic fallback ───────────────────────────────────────
+        logger.info("CoVe attempt %d: applying deterministic correction", attempt)
         current = apply_deterministic_correction(current, validation, registers[match_key])
 
     return CoVeOutcome(status="UNCERTAIN", final_extraction=current, attempts=attempts)

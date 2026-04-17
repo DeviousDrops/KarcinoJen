@@ -31,6 +31,27 @@ class Stage5Result:
     attempts: list[ExtractionAttempt]
 
 
+def _looks_like_auth_failure(message: str) -> bool:
+    text = message.lower()
+    markers = [
+        "401",
+        "invalid authentication credential",
+        "unauthenticated",
+        "invalid api key",
+        "missing api key",
+        "permission denied",
+        "forbidden",
+        "429",
+        "resource_exhausted",
+        "quota exceeded",
+        "503",
+        "unavailable",
+        "high demand",
+        "try again later",
+    ]
+    return any(marker in text for marker in markers)
+
+
 def run_stage5_extraction(
     *,
     client: VLMClient,
@@ -42,6 +63,7 @@ def run_stage5_extraction(
 ) -> Stage5Result:
     attempts: list[ExtractionAttempt] = []
     mismatch_report: dict[str, Any] | None = None
+    stop_primary_retries = False
 
     text_only_page_context = [
         {
@@ -69,11 +91,12 @@ def run_stage5_extraction(
                 mismatch_report=mismatch_report,
             )
         except Exception as exc:
+            exc_text = str(exc)
             attempts.append(
                 ExtractionAttempt(
                     attempt=attempt,
                     schema_valid=False,
-                    schema_errors=[str(exc)],
+                    schema_errors=[exc_text],
                     validation_status=None,
                     validation_checks=None,
                     raw_text="",
@@ -82,8 +105,14 @@ def run_stage5_extraction(
             )
             mismatch_report = {
                 "reason": "primary client failed",
-                "errors": [str(exc)],
+                "errors": [exc_text],
             }
+
+            # Authentication failures are deterministic; jump to fallback clients immediately.
+            if _looks_like_auth_failure(exc_text):
+                stop_primary_retries = True
+                break
+
             continue
 
         schema_result = validate_register_extraction(response.parsed_json)
@@ -121,7 +150,7 @@ def run_stage5_extraction(
                 "errors": schema_result.errors,
             }
 
-    if fallback_clients:
+    if fallback_clients and (stop_primary_retries or len(attempts) >= extraction_cfg.max_attempts):
         prompt_text = PROMPT_V2 if mismatch_report is None else COVE_PROMPT_TEMPLATE.format(
             mismatch_report=json.dumps(mismatch_report, indent=2)
         )
@@ -130,17 +159,23 @@ def run_stage5_extraction(
             if fallback_client.provider.name == client.provider.name:
                 continue
 
+            fallback_page_context = (
+                page_context
+                if fallback_client.provider.name in ("llava", "qwen2_5_vl")
+                else text_only_page_context
+            )
+
             try:
                 response = fallback_client.extract(
                     prompt_text=prompt_text,
                     query=query,
-                    page_context=text_only_page_context,
+                    page_context=fallback_page_context,
                     mismatch_report=mismatch_report,
                 )
             except Exception as exc:
                 attempts.append(
                     ExtractionAttempt(
-                        attempt=extraction_cfg.max_attempts + index,
+                        attempt=len(attempts) + 1,
                         schema_valid=False,
                         schema_errors=[str(exc)],
                         validation_status=None,
@@ -162,7 +197,7 @@ def run_stage5_extraction(
 
             attempts.append(
                 ExtractionAttempt(
-                    attempt=extraction_cfg.max_attempts + index,
+                    attempt=len(attempts) + 1,
                     schema_valid=schema_result.is_valid,
                     schema_errors=schema_result.errors,
                     validation_status=validation_status,

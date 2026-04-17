@@ -67,23 +67,73 @@ def load_svd_registers(svd_path: str) -> dict[str, RegisterDef]:
 
     register_map: dict[str, RegisterDef] = {}
 
+    peripherals: dict[str, ET.Element] = {}
     for peripheral in root.findall(".//peripheral"):
         peripheral_name = peripheral.findtext("name", default="")
+        if peripheral_name:
+            peripherals[peripheral_name] = peripheral
+
+    template_cache: dict[str, list[dict[str, int | str]]] = {}
+
+    def _own_register_templates(peripheral_elem: ET.Element) -> list[dict[str, int | str]]:
+        templates: list[dict[str, int | str]] = []
+        for register in peripheral_elem.findall(".//register"):
+            register_name = register.findtext("name", default="")
+            if not register_name:
+                continue
+
+            offset_text = register.findtext("addressOffset", default="0x0")
+            size_text = register.findtext("size", default="32")
+            templates.append(
+                {
+                    "name": register_name,
+                    "offset": _parse_int(offset_text),
+                    "size": _parse_int(size_text),
+                }
+            )
+        return templates
+
+    def _resolve_templates(peripheral_name: str, stack: tuple[str, ...] = ()) -> list[dict[str, int | str]]:
+        if peripheral_name in template_cache:
+            return template_cache[peripheral_name]
+
+        if peripheral_name in stack:
+            # Defensive fallback for malformed SVD cycles.
+            template_cache[peripheral_name] = []
+            return template_cache[peripheral_name]
+
+        peripheral_elem = peripherals.get(peripheral_name)
+        if peripheral_elem is None:
+            template_cache[peripheral_name] = []
+            return template_cache[peripheral_name]
+
+        merged: dict[str, dict[str, int | str]] = {}
+
+        parent_name = peripheral_elem.get("derivedFrom")
+        if parent_name:
+            for parent_template in _resolve_templates(parent_name, stack + (peripheral_name,)):
+                merged[str(parent_template["name"])] = dict(parent_template)
+
+        for own_template in _own_register_templates(peripheral_elem):
+            merged[str(own_template["name"])] = own_template
+
+        resolved = list(merged.values())
+        template_cache[peripheral_name] = resolved
+        return resolved
+
+    for peripheral_name, peripheral in peripherals.items():
         base_address_text = peripheral.findtext("baseAddress", default="0x0")
         base_address = _parse_int(base_address_text)
 
-        for register in peripheral.findall(".//register"):
-            register_name = register.findtext("name", default="")
-            offset_text = register.findtext("addressOffset", default="0x0")
-            size_text = register.findtext("size", default="32")
-
+        for template in _resolve_templates(peripheral_name):
+            register_name = str(template["name"])
             register_key = f"{peripheral_name}.{register_name}"
             register_map[register_key] = RegisterDef(
                 name=register_name,
                 peripheral=peripheral_name,
                 base_address=base_address,
-                offset=_parse_int(offset_text),
-                size=_parse_int(size_text),
+                offset=int(template["offset"]),
+                size=int(template["size"]),
             )
 
     return register_map

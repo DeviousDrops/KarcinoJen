@@ -1,0 +1,94 @@
+{
+  "peripheral": "SPI1",
+  "register_name": "CR1",
+  "base_address": "0x40013000",
+  "offset": "0x00",
+  "register_size": 32,
+  "bits": [
+    {
+      "name": "CPHA",
+      "position": 0,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "CPOL",
+      "position": 1,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "MSTR",
+      "position": 2,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "BR",
+      "position": 3,
+      "width": 3,
+      "access": "RW"
+    },
+    {
+      "name": "SPE",
+      "position": 6,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "LSBFIRST",
+      "position": 7,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "SSI",
+      "position": 8,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "SSM",
+      "position": 9,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "RXONLY",
+      "position": 10,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "DFF",
+      "position": 11,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "CRCNEXT",
+      "position": 12,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "CRCEN",
+      "position": 13,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "BIDIOE",
+      "position": 14,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "BIDIMODE",
+      "position": 15,
+      "width": 1,
+      "access": "RW"
+    }
+  ],
+  "timing_constraints": []
+}

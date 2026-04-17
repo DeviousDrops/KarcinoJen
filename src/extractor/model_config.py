@@ -33,10 +33,8 @@ class RetrievalConfig:
     hex_token_boost: float
     rrf_k: int
     backend: str
-    chroma_path: str
-    collection_prefix: str
-    embedding_model: str
-    semantic_candidates_multiplier: int
+    colpali_model: str
+    colpali_index_path: str
 
 
 @dataclass(frozen=True)
@@ -81,13 +79,13 @@ def load_runtime_config(config_path: Path) -> RuntimeConfig:
         semantic_weight=float(retrieval_payload.get("semantic_weight", 0.45)),
         hex_token_boost=float(retrieval_payload.get("hex_token_boost", 2.0)),
         rrf_k=int(retrieval_payload.get("rrf_k", 60)),
-        backend=str(retrieval_payload.get("backend", "lexical")),
-        chroma_path=str(retrieval_payload.get("chroma_path", "data/chroma")),
-        collection_prefix=str(retrieval_payload.get("collection_prefix", "datasheet_pages")),
-        embedding_model=str(
-            retrieval_payload.get("embedding_model", "sentence-transformers/all-MiniLM-L6-v2")
+        backend=str(retrieval_payload.get("backend", "colpali")),
+        colpali_model=str(
+            retrieval_payload.get("colpali_model", "vidore/colpali-v1.3-merged")
         ),
-        semantic_candidates_multiplier=int(retrieval_payload.get("semantic_candidates_multiplier", 5)),
+        colpali_index_path=str(
+            retrieval_payload.get("colpali_index_path", "data/colpali_index")
+        ),
     )
 
     return RuntimeConfig(

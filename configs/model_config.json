@@ -1,15 +1,15 @@
 {
-  "version": "1.1",
+  "version": "2.0",
   "selected_provider": "gemini",
   "providers": {
     "gemini": {
-      "model": "gemini-2.0-flash",
+      "model": "gemini-2.5-flash",
       "api_key_env": "GEMINI_API_KEY",
       "base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
-      "timeout_seconds": 60
+      "timeout_seconds": 90
     },
     "groq": {
-      "model": "llama-3.1-8b-instant",
+      "model": "llama-3.3-70b-versatile",
       "api_key_env": "GROQ_API_KEY",
       "base_url": "https://api.groq.com/openai/v1",
       "timeout_seconds": 60
@@ -29,23 +29,26 @@
       "model": "llava:latest",
       "endpoint_env": "OLLAMA_ENDPOINT",
       "timeout_seconds": 180
+    },
+    "qwen2_5_vl": {
+      "model": "qwen2.5-vl:7b",
+      "endpoint_env": "OLLAMA_ENDPOINT",
+      "timeout_seconds": 240
     }
   },
   "extraction": {
     "temperature": 0,
-    "max_attempts": 2,
+    "max_attempts": 3,
     "response_format": "json_object"
   },
   "retrieval": {
-    "backend": "chroma",
-    "top_k": 6,
-    "lexical_weight": 0.65,
-    "semantic_weight": 0.35,
+    "backend": "colpali",
+    "top_k": 5,
+    "lexical_weight": 0.35,
+    "semantic_weight": 0.65,
     "hex_token_boost": 2.0,
     "rrf_k": 60,
-    "chroma_path": "data/chroma",
-    "collection_prefix": "datasheet_pages",
-    "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
-    "semantic_candidates_multiplier": 8
+    "colpali_model": "vidore/colpali-v1.3-merged",
+    "colpali_index_path": "data/colpali_index"
   }
 }

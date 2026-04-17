@@ -1,9 +1,9 @@
-"""Generate a C++ driver from one datasheet and one user query.
+"""Generate a C driver from one datasheet and one user query.
 
-The supported flow is only:
+The supported flow is:
 - input: datasheet path + natural-language query
-- processing: retrieval -> VLM extraction -> validation -> synthesis
-- output: driver.h and driver.c
+- processing: retrieval (ColPali/lexical) → VLM extraction → SVD validation → CoVe → synthesis
+- output: driver.h, driver.c, and audit_trace.json
 """
 
 from __future__ import annotations
@@ -24,7 +24,8 @@ from src.extractor.model_config import load_runtime_config
 from src.extractor.vlm_client import VLMClient
 from src.extractor.vlm_extractor import run_stage5_extraction
 from src.ingest.pdf_page_renderer import render_pdf_page
-from src.retrieval.chroma_retriever import retrieve_top_pages
+from src.retrieval.hybrid_retriever import retrieve_top_pages
+from src.synthesis.llm_enrichment import enrich_driver_with_fallback
 from src.validator.svd_validator import load_svd_registers
 
 DATA_ROOT = ROOT / "data"
@@ -69,19 +70,28 @@ def _family_name(datasheet_path: Path) -> str:
     return datasheet_path.stem.upper()
 
 
-def _build_page_context(datasheet_path: Path, top_pages: list[dict[str, object]], render_dir: Path) -> list[dict[str, object]]:
+def _build_page_context(
+    datasheet_path: Path,
+    top_pages: list[dict[str, object]],
+    render_dir: Path,
+) -> list[dict[str, object]]:
     page_context: list[dict[str, object]] = []
     for page in top_pages:
-        rendered = render_pdf_page(datasheet_path, int(page["page_number"]), render_dir)
+        # Check if ColPali retriever already provided an image path
+        image_path = page.get("image_path")
+        if not image_path or not Path(str(image_path)).exists():
+            rendered = render_pdf_page(datasheet_path, int(page["page_number"]), render_dir)
+            image_path = str(rendered) if rendered is not None else None
+
         page_context.append(
             {
                 "page_id": page["page_id"],
-                "source_file": page["source_file"],
+                "source_file": page.get("source_file", datasheet_path.name),
                 "page_number": page["page_number"],
-                "peripheral": page["peripheral"],
-                "keywords": page["keywords"],
+                "peripheral": page.get("peripheral", ""),
+                "keywords": page.get("keywords", []),
                 "page_text": page.get("text", ""),
-                "image_path": str(rendered) if rendered is not None else None,
+                "image_path": str(image_path) if image_path else None,
             }
         )
     return page_context
@@ -108,82 +118,45 @@ def _run_synthesis(validated_payload: dict[str, object], outdir: Path) -> subpro
         )
 
 
-def _enrich_driver_with_groq(
-    validated_payload: dict[str, object],
-    outdir: Path,
-    groq_client: VLMClient,
-) -> None:
-    """Use Groq to generate an enriched driver.c with application guidance.
+def _build_extraction_fallback_clients(runtime_cfg) -> list[VLMClient]:
+    clients: list[VLMClient] = []
+    seen: set[str] = set()
 
-    Reads the template-generated driver.c and the validated register JSON,
-    then asks Groq to produce an improved version with proper init logic,
-    usage comments, and bit-manipulation helpers.
-    """
-    driver_c_path = outdir / "driver.c"
-    driver_h_path = outdir / "driver.h"
-    if not driver_c_path.exists() or not driver_h_path.exists():
-        return
+    def _add(provider_name: str) -> None:
+        if provider_name in seen:
+            return
+        provider_cfg = runtime_cfg.providers.get(provider_name)
+        if provider_cfg is None:
+            return
+        clients.append(VLMClient(provider_cfg))
+        seen.add(provider_name)
 
-    template_c = driver_c_path.read_text(encoding="utf-8")
-    template_h = driver_h_path.read_text(encoding="utf-8")
+    selected = runtime_cfg.selected_provider
+    if selected == "gemini":
+        _add("llava")
+        _add("qwen2_5_vl")
+    elif selected in ("llava", "qwen2_5_vl"):
+        _add("qwen2_5_vl" if selected == "llava" else "llava")
+        _add("gemini")
+    elif selected == "openai":
+        _add("gemini")
+        _add("llava")
+        _add("qwen2_5_vl")
+    elif selected == "groq":
+        _add("gemini")
+        _add("llava")
+        _add("qwen2_5_vl")
 
-    groq_prompt = (
-        "You are an embedded-systems C code generator.\n"
-        "You are given a register extraction JSON and a template driver skeleton.\n"
-        "Produce a complete, compilable driver.c that:\n"
-        "  1. Includes driver.h\n"
-        "  2. Implements each _init(), _read(), and _write() stub with correct\n"
-        "     bit-field manipulation using the #defines from driver.h\n"
-        "  3. Adds a brief inline comment per function explaining what the register does\n"
-        "  4. Does NOT change the #defines in driver.h\n"
-        "Return ONLY the C source code as plain text. No markdown fences."
-    )
+    return clients
 
-    evidence = json.dumps(
-        {
-            "validated_extraction": validated_payload,
-            "template_driver_h": template_h,
-            "template_driver_c": template_c,
-        },
-        indent=2,
-    )
 
-    # Groq uses the OpenAI-compatible text path; send as a plain text page.
-    page_context = [
-        {
-            "page_id": validated_payload.get("source_page_id", "extracted"),
-            "page_text": evidence,
-        }
-    ]
-
-    try:
-        response = groq_client.extract(
-            prompt_text=groq_prompt,
-            query="Generate enriched driver.c",
-            page_context=page_context,
-            mismatch_report=None,
-        )
-        # Groq returns JSON per our client contract; but for code generation
-        # we want raw text. Try to extract a 'code' or 'driver_c' key,
-        # or fall back to the full raw_text if it looks like C code.
-        raw = response.raw_text.strip()
-        if raw.startswith("#include") or "void " in raw:
-            driver_c_path.write_text(raw, encoding="utf-8")
-            print("[groq] driver.c enriched by Groq synthesis.")
-        elif isinstance(response.parsed_json, dict):
-            code = (
-                response.parsed_json.get("driver_c")
-                or response.parsed_json.get("code")
-                or response.parsed_json.get("content")
-            )
-            if code and isinstance(code, str) and "#include" in code:
-                driver_c_path.write_text(code, encoding="utf-8")
-                print("[groq] driver.c enriched by Groq synthesis.")
-            else:
-                print("[groq] Groq response did not contain valid C code; keeping template.")
-    except Exception as exc:
-        # Groq enrichment is best-effort; do not fail the whole pipeline.
-        print(f"[groq] Enrichment skipped: {exc}")
+def _build_enrichment_clients(runtime_cfg) -> list[VLMClient]:
+    clients: list[VLMClient] = []
+    for provider_name in ("groq", "ollama", "llava", "qwen2_5_vl"):
+        provider_cfg = runtime_cfg.providers.get(provider_name)
+        if provider_cfg is not None:
+            clients.append(VLMClient(provider_cfg))
+    return clients
 
 
 def run_pipeline(args: argparse.Namespace) -> Path:
@@ -198,13 +171,14 @@ def run_pipeline(args: argparse.Namespace) -> Path:
             hex_token_boost=runtime_cfg.retrieval.hex_token_boost,
             rrf_k=runtime_cfg.retrieval.rrf_k,
             backend=runtime_cfg.retrieval.backend,
-            chroma_path=runtime_cfg.retrieval.chroma_path,
-            collection_prefix=runtime_cfg.retrieval.collection_prefix,
-            embedding_model=runtime_cfg.retrieval.embedding_model,
-            semantic_candidates_multiplier=runtime_cfg.retrieval.semantic_candidates_multiplier,
+            colpali_model=runtime_cfg.retrieval.colpali_model,
+            colpali_index_path=runtime_cfg.retrieval.colpali_index_path,
         )
     else:
         retrieval_cfg = runtime_cfg.retrieval
+
+    print(f"[pipeline] Retrieval backend: {retrieval_cfg.backend}")
+    print(f"[pipeline] Provider: {runtime_cfg.selected_provider}/{runtime_cfg.provider.model}")
 
     top_pages = retrieve_top_pages(
         query=args.query,
@@ -222,29 +196,7 @@ def run_pipeline(args: argparse.Namespace) -> Path:
         registers = load_svd_registers(str(svd_path))
         client = VLMClient(runtime_cfg.provider)
 
-        # Build fallback clients for the VLM extraction stage.
-        #
-        # Primary = gemini  →  fallback: groq (text-only, reliable, same free tier)
-        # Primary = llava   →  fallback: ollama (text) then groq
-        # Primary = groq    →  no extraction fallback (groq is already the fallback tier)
-        #
-        # Groq also runs a best-effort driver.c enrichment pass after synthesis.
-        fallback_clients: list[VLMClient] = []
-        selected = runtime_cfg.selected_provider
-
-        if selected == "gemini":
-            groq_fb = runtime_cfg.providers.get("groq")
-            if groq_fb is not None:
-                fallback_clients.append(VLMClient(groq_fb))
-
-        elif selected == "llava":
-            ollama_fb = runtime_cfg.providers.get("ollama")
-            if ollama_fb is not None:
-                fallback_clients.append(VLMClient(ollama_fb))
-            groq_fb = runtime_cfg.providers.get("groq")
-            if groq_fb is not None:
-                fallback_clients.append(VLMClient(groq_fb))
-
+        fallback_clients = _build_extraction_fallback_clients(runtime_cfg)
 
         stage5 = run_stage5_extraction(
             client=client,
@@ -281,13 +233,17 @@ def run_pipeline(args: argparse.Namespace) -> Path:
         if not (outdir / "driver.h").exists() or not (outdir / "driver.c").exists():
             raise RuntimeError("Synthesis completed but driver files were not created")
 
-        # Groq enrichment pass: ask Groq to generate a complete, annotated driver.c
-        # from the validated schema + template skeleton.  This is the primary use of
-        # the Groq API key and is the architectural step described in the README.
-        groq_provider = runtime_cfg.providers.get("groq")
-        if groq_provider is not None:
-            groq_client = VLMClient(groq_provider)
-            _enrich_driver_with_groq(validated_payload, outdir, groq_client)
+        # Best-effort LLM enrichment with local fallback chain.
+        enriched, provider_or_reason = enrich_driver_with_fallback(
+            validated_payload=validated_payload,
+            driver_h_path=outdir / "driver.h",
+            driver_c_path=outdir / "driver.c",
+            clients=_build_enrichment_clients(runtime_cfg),
+        )
+        if enriched:
+            print(f"[llm] driver.c enriched via {provider_or_reason}")
+        else:
+            print(f"[llm] enrichment skipped: {provider_or_reason}")
 
         print(f"Query: {args.query}")
         print(f"Datasheet: {datasheet_path}")
@@ -296,7 +252,7 @@ def run_pipeline(args: argparse.Namespace) -> Path:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Generate a C++ driver from a datasheet and query")
+    parser = argparse.ArgumentParser(description="Generate a C driver from a datasheet and query")
     parser.add_argument("--datasheet", required=True, help="Datasheet path or bundled filename")
     parser.add_argument("--query", required=True, help="Natural-language extraction request")
     parser.add_argument(

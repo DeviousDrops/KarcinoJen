@@ -1,4 +1,18 @@
+# Core
 PyMuPDF>=1.24.0
-chromadb>=0.5.5,<1.0.0
-sentence-transformers>=3.0.1
 groq>=0.9.0
+google-genai>=1.73.1
+
+# ColPali visual embeddings with CUDA support
+colpali-engine>=0.3.0
+torch>=2.0.0  # Install torch with CUDA: pip install torch --index-url https://download.pytorch.org/whl/cu118
+transformers>=4.41.0
+Pillow>=10.0.0
+numpy>=1.24.0
+accelerate>=0.27.0  # For CUDA-accelerated transformers
+
+# Optional: for GPU-accelerated PDF rendering
+fitz-cuda>=1.24.0  # Uncomment if using CUDA-capable PDF rendering
+
+# Evaluation
+Levenshtein>=0.25.0

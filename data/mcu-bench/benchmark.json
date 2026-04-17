@@ -1,0 +1,1878 @@
+{
+  "name": "MCU-Bench",
+  "version": "1.0",
+  "description": "Auto-generated benchmark dataset for KarcinoJen evaluation",
+  "total_records": 17,
+  "mcu_families": [
+    "RP2040",
+    "STM32F401"
+  ],
+  "records": [
+    {
+      "id": "mcu_bench_001",
+      "mcu_family": "STM32F401",
+      "query": "Extract GPIOA MODER register bit layout with mode encoding for each pin.",
+      "peripheral": "GPIOA",
+      "register": "MODER",
+      "datasheet_stem": "stm32f401-rm",
+      "svd_stem": "stm32f401",
+      "page_image": null,
+      "ground_truth_json": {
+        "peripheral": "GPIOA",
+        "register_name": "MODER",
+        "base_address": "0x40020000",
+        "offset": "0x00",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "MODER%s",
+            "position": 0,
+            "width": 2,
+            "access": "RW"
+          }
+        ],
+        "timing_constraints": []
+      },
+      "ground_truth": {
+        "peripheral": "GPIOA",
+        "register_name": "MODER",
+        "base_address": "0x40020000",
+        "offset": "0x00",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "MODER%s",
+            "position": 0,
+            "width": 2,
+            "access": "RW"
+          }
+        ],
+        "timing_constraints": []
+      }
+    },
+    {
+      "id": "mcu_bench_002",
+      "mcu_family": "STM32F401",
+      "query": "Extract GPIOA ODR output data register bit positions and widths.",
+      "peripheral": "GPIOA",
+      "register": "ODR",
+      "datasheet_stem": "stm32f401-rm",
+      "svd_stem": "stm32f401",
+      "page_image": null,
+      "ground_truth_json": {
+        "peripheral": "GPIOA",
+        "register_name": "ODR",
+        "base_address": "0x40020000",
+        "offset": "0x14",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "ODR%s",
+            "position": 0,
+            "width": 1,
+            "access": "RW"
+          }
+        ],
+        "timing_constraints": []
+      },
+      "ground_truth": {
+        "peripheral": "GPIOA",
+        "register_name": "ODR",
+        "base_address": "0x40020000",
+        "offset": "0x14",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "ODR%s",
+            "position": 0,
+            "width": 1,
+            "access": "RW"
+          }
+        ],
+        "timing_constraints": []
+      }
+    },
+    {
+      "id": "mcu_bench_003",
+      "mcu_family": "STM32F401",
+      "query": "Extract GPIOB MODER register base address, offset, and mode field widths.",
+      "peripheral": "GPIOB",
+      "register": "MODER",
+      "datasheet_stem": "stm32f401-rm",
+      "svd_stem": "stm32f401",
+      "page_image": null,
+      "ground_truth_json": {
+        "peripheral": "GPIOB",
+        "register_name": "MODER",
+        "base_address": "0x40020400",
+        "offset": "0x00",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "MODER%s",
+            "position": 0,
+            "width": 2,
+            "access": "RW"
+          }
+        ],
+        "timing_constraints": []
+      },
+      "ground_truth": {
+        "peripheral": "GPIOB",
+        "register_name": "MODER",
+        "base_address": "0x40020400",
+        "offset": "0x00",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "MODER%s",
+            "position": 0,
+            "width": 2,
+            "access": "RW"
+          }
+        ],
+        "timing_constraints": []
+      }
+    },
+    {
+      "id": "mcu_bench_006",
+      "mcu_family": "STM32F401",
+      "query": "Extract RCC AHB1ENR register GPIOAEN and GPIOBEN clock enable bit positions.",
+      "peripheral": "RCC",
+      "register": "AHB1ENR",
+      "datasheet_stem": "stm32f401-rm",
+      "svd_stem": "stm32f401",
+      "page_image": null,
+      "ground_truth_json": {
+        "peripheral": "RCC",
+        "register_name": "AHB1ENR",
+        "base_address": "0x40023800",
+        "offset": "0x30",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "GPIOAEN",
+            "position": 0,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "GPIOBEN",
+            "position": 1,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "GPIOCEN",
+            "position": 2,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "GPIODEN",
+            "position": 3,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "GPIOEEN",
+            "position": 4,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "GPIOHEN",
+            "position": 7,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "CRCEN",
+            "position": 12,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "DMA1EN",
+            "position": 21,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "DMA2EN",
+            "position": 22,
+            "width": 1,
+            "access": "RW"
+          }
+        ],
+        "timing_constraints": []
+      },
+      "ground_truth": {
+        "peripheral": "RCC",
+        "register_name": "AHB1ENR",
+        "base_address": "0x40023800",
+        "offset": "0x30",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "GPIOAEN",
+            "position": 0,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "GPIOBEN",
+            "position": 1,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "GPIOCEN",
+            "position": 2,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "GPIODEN",
+            "position": 3,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "GPIOEEN",
+            "position": 4,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "GPIOHEN",
+            "position": 7,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "CRCEN",
+            "position": 12,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "DMA1EN",
+            "position": 21,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "DMA2EN",
+            "position": 22,
+            "width": 1,
+            "access": "RW"
+          }
+        ],
+        "timing_constraints": []
+      }
+    },
+    {
+      "id": "mcu_bench_007",
+      "mcu_family": "STM32F401",
+      "query": "Extract RCC APB1ENR register with USART2EN and TIM2EN clock enable bits.",
+      "peripheral": "RCC",
+      "register": "APB1ENR",
+      "datasheet_stem": "stm32f401-rm",
+      "svd_stem": "stm32f401",
+      "page_image": null,
+      "ground_truth_json": {
+        "peripheral": "RCC",
+        "register_name": "APB1ENR",
+        "base_address": "0x40023800",
+        "offset": "0x40",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "TIM2EN",
+            "position": 0,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "TIM3EN",
+            "position": 1,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "TIM4EN",
+            "position": 2,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "TIM5EN",
+            "position": 3,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "WWDGEN",
+            "position": 11,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "SPI2EN",
+            "position": 14,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "SPI3EN",
+            "position": 15,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "USART2EN",
+            "position": 17,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "I2C1EN",
+            "position": 21,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "I2C2EN",
+            "position": 22,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "I2C3EN",
+            "position": 23,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "PWREN",
+            "position": 28,
+            "width": 1,
+            "access": "RW"
+          }
+        ],
+        "timing_constraints": []
+      },
+      "ground_truth": {
+        "peripheral": "RCC",
+        "register_name": "APB1ENR",
+        "base_address": "0x40023800",
+        "offset": "0x40",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "TIM2EN",
+            "position": 0,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "TIM3EN",
+            "position": 1,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "TIM4EN",
+            "position": 2,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "TIM5EN",
+            "position": 3,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "WWDGEN",
+            "position": 11,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "SPI2EN",
+            "position": 14,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "SPI3EN",
+            "position": 15,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "USART2EN",
+            "position": 17,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "I2C1EN",
+            "position": 21,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "I2C2EN",
+            "position": 22,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "I2C3EN",
+            "position": 23,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "PWREN",
+            "position": 28,
+            "width": 1,
+            "access": "RW"
+          }
+        ],
+        "timing_constraints": []
+      }
+    },
+    {
+      "id": "mcu_bench_008",
+      "mcu_family": "STM32F401",
+      "query": "Extract TIM2 CR1 register CEN, UDIS, URS, OPM, DIR bits with positions.",
+      "peripheral": "TIM2",
+      "register": "CR1",
+      "datasheet_stem": "stm32f401-rm",
+      "svd_stem": "stm32f401",
+      "page_image": null,
+      "ground_truth_json": {
+        "peripheral": "TIM2",
+        "register_name": "CR1",
+        "base_address": "0x40000000",
+        "offset": "0x00",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "CEN",
+            "position": 0,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "UDIS",
+            "position": 1,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "URS",
+            "position": 2,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "OPM",
+            "position": 3,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "DIR",
+            "position": 4,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "CMS",
+            "position": 5,
+            "width": 2,
+            "access": "RW"
+          },
+          {
+            "name": "ARPE",
+            "position": 7,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "CKD",
+            "position": 8,
+            "width": 2,
+            "access": "RW"
+          }
+        ],
+        "timing_constraints": []
+      },
+      "ground_truth": {
+        "peripheral": "TIM2",
+        "register_name": "CR1",
+        "base_address": "0x40000000",
+        "offset": "0x00",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "CEN",
+            "position": 0,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "UDIS",
+            "position": 1,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "URS",
+            "position": 2,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "OPM",
+            "position": 3,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "DIR",
+            "position": 4,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "CMS",
+            "position": 5,
+            "width": 2,
+            "access": "RW"
+          },
+          {
+            "name": "ARPE",
+            "position": 7,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "CKD",
+            "position": 8,
+            "width": 2,
+            "access": "RW"
+          }
+        ],
+        "timing_constraints": []
+      }
+    },
+    {
+      "id": "mcu_bench_009",
+      "mcu_family": "STM32F401",
+      "query": "Extract TIM2 PSC prescaler register bit layout and width.",
+      "peripheral": "TIM2",
+      "register": "PSC",
+      "datasheet_stem": "stm32f401-rm",
+      "svd_stem": "stm32f401",
+      "page_image": null,
+      "ground_truth_json": {
+        "peripheral": "TIM2",
+        "register_name": "PSC",
+        "base_address": "0x40000000",
+        "offset": "0x28",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "PSC",
+            "position": 0,
+            "width": 16,
+            "access": "RW"
+          }
+        ],
+        "timing_constraints": []
+      },
+      "ground_truth": {
+        "peripheral": "TIM2",
+        "register_name": "PSC",
+        "base_address": "0x40000000",
+        "offset": "0x28",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "PSC",
+            "position": 0,
+            "width": 16,
+            "access": "RW"
+          }
+        ],
+        "timing_constraints": []
+      }
+    },
+    {
+      "id": "mcu_bench_010",
+      "mcu_family": "STM32F401",
+      "query": "Extract SPI1 CR1 register SPE, BR, MSTR, CPOL, CPHA bits with positions.",
+      "peripheral": "SPI1",
+      "register": "CR1",
+      "datasheet_stem": "stm32f401-rm",
+      "svd_stem": "stm32f401",
+      "page_image": null,
+      "ground_truth_json": {
+        "peripheral": "SPI1",
+        "register_name": "CR1",
+        "base_address": "0x40013000",
+        "offset": "0x00",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "CPHA",
+            "position": 0,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "CPOL",
+            "position": 1,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "MSTR",
+            "position": 2,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "BR",
+            "position": 3,
+            "width": 3,
+            "access": "RW"
+          },
+          {
+            "name": "SPE",
+            "position": 6,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "LSBFIRST",
+            "position": 7,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "SSI",
+            "position": 8,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "SSM",
+            "position": 9,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "RXONLY",
+            "position": 10,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "DFF",
+            "position": 11,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "CRCNEXT",
+            "position": 12,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "CRCEN",
+            "position": 13,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "BIDIOE",
+            "position": 14,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "BIDIMODE",
+            "position": 15,
+            "width": 1,
+            "access": "RW"
+          }
+        ],
+        "timing_constraints": []
+      },
+      "ground_truth": {
+        "peripheral": "SPI1",
+        "register_name": "CR1",
+        "base_address": "0x40013000",
+        "offset": "0x00",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "CPHA",
+            "position": 0,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "CPOL",
+            "position": 1,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "MSTR",
+            "position": 2,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "BR",
+            "position": 3,
+            "width": 3,
+            "access": "RW"
+          },
+          {
+            "name": "SPE",
+            "position": 6,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "LSBFIRST",
+            "position": 7,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "SSI",
+            "position": 8,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "SSM",
+            "position": 9,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "RXONLY",
+            "position": 10,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "DFF",
+            "position": 11,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "CRCNEXT",
+            "position": 12,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "CRCEN",
+            "position": 13,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "BIDIOE",
+            "position": 14,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "BIDIMODE",
+            "position": 15,
+            "width": 1,
+            "access": "RW"
+          }
+        ],
+        "timing_constraints": []
+      }
+    },
+    {
+      "id": "mcu_bench_011",
+      "mcu_family": "STM32F401",
+      "query": "Extract I2C1 CR1 register PE, START, STOP, ACK bits with positions.",
+      "peripheral": "I2C1",
+      "register": "CR1",
+      "datasheet_stem": "stm32f401-rm",
+      "svd_stem": "stm32f401",
+      "page_image": null,
+      "ground_truth_json": {
+        "peripheral": "I2C1",
+        "register_name": "CR1",
+        "base_address": "0x40005400",
+        "offset": "0x00",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "PE",
+            "position": 0,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "SMBUS",
+            "position": 1,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "SMBTYPE",
+            "position": 3,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "ENARP",
+            "position": 4,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "ENPEC",
+            "position": 5,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "ENGC",
+            "position": 6,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "NOSTRETCH",
+            "position": 7,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "START",
+            "position": 8,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "STOP",
+            "position": 9,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "ACK",
+            "position": 10,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "POS",
+            "position": 11,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "PEC",
+            "position": 12,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "ALERT",
+            "position": 13,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "SWRST",
+            "position": 15,
+            "width": 1,
+            "access": "RW"
+          }
+        ],
+        "timing_constraints": []
+      },
+      "ground_truth": {
+        "peripheral": "I2C1",
+        "register_name": "CR1",
+        "base_address": "0x40005400",
+        "offset": "0x00",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "PE",
+            "position": 0,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "SMBUS",
+            "position": 1,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "SMBTYPE",
+            "position": 3,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "ENARP",
+            "position": 4,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "ENPEC",
+            "position": 5,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "ENGC",
+            "position": 6,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "NOSTRETCH",
+            "position": 7,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "START",
+            "position": 8,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "STOP",
+            "position": 9,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "ACK",
+            "position": 10,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "POS",
+            "position": 11,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "PEC",
+            "position": 12,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "ALERT",
+            "position": 13,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "SWRST",
+            "position": 15,
+            "width": 1,
+            "access": "RW"
+          }
+        ],
+        "timing_constraints": []
+      }
+    },
+    {
+      "id": "mcu_bench_012",
+      "mcu_family": "STM32F401",
+      "query": "Extract ADC1 CR1 register RES, SCAN, EOCIE bits with positions.",
+      "peripheral": "ADC1",
+      "register": "CR1",
+      "datasheet_stem": "stm32f401-rm",
+      "svd_stem": "stm32f401",
+      "page_image": null,
+      "ground_truth_json": {
+        "peripheral": "ADC1",
+        "register_name": "CR1",
+        "base_address": "0x40012000",
+        "offset": "0x04",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "AWDCH",
+            "position": 0,
+            "width": 5,
+            "access": "RW"
+          },
+          {
+            "name": "EOCIE",
+            "position": 5,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "AWDIE",
+            "position": 6,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "JEOCIE",
+            "position": 7,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "SCAN",
+            "position": 8,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "AWDSGL",
+            "position": 9,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "JAUTO",
+            "position": 10,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "DISCEN",
+            "position": 11,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "JDISCEN",
+            "position": 12,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "DISCNUM",
+            "position": 13,
+            "width": 3,
+            "access": "RW"
+          },
+          {
+            "name": "JAWDEN",
+            "position": 22,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "AWDEN",
+            "position": 23,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "RES",
+            "position": 24,
+            "width": 2,
+            "access": "RW"
+          },
+          {
+            "name": "OVRIE",
+            "position": 26,
+            "width": 1,
+            "access": "RW"
+          }
+        ],
+        "timing_constraints": []
+      },
+      "ground_truth": {
+        "peripheral": "ADC1",
+        "register_name": "CR1",
+        "base_address": "0x40012000",
+        "offset": "0x04",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "AWDCH",
+            "position": 0,
+            "width": 5,
+            "access": "RW"
+          },
+          {
+            "name": "EOCIE",
+            "position": 5,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "AWDIE",
+            "position": 6,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "JEOCIE",
+            "position": 7,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "SCAN",
+            "position": 8,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "AWDSGL",
+            "position": 9,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "JAUTO",
+            "position": 10,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "DISCEN",
+            "position": 11,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "JDISCEN",
+            "position": 12,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "DISCNUM",
+            "position": 13,
+            "width": 3,
+            "access": "RW"
+          },
+          {
+            "name": "JAWDEN",
+            "position": 22,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "AWDEN",
+            "position": 23,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "RES",
+            "position": 24,
+            "width": 2,
+            "access": "RW"
+          },
+          {
+            "name": "OVRIE",
+            "position": 26,
+            "width": 1,
+            "access": "RW"
+          }
+        ],
+        "timing_constraints": []
+      }
+    },
+    {
+      "id": "mcu_bench_013",
+      "mcu_family": "STM32F401",
+      "query": "Extract EXTI IMR interrupt mask register bit layout for lines 0 to 15.",
+      "peripheral": "EXTI",
+      "register": "IMR",
+      "datasheet_stem": "stm32f401-rm",
+      "svd_stem": "stm32f401",
+      "page_image": null,
+      "ground_truth_json": {
+        "peripheral": "EXTI",
+        "register_name": "IMR",
+        "base_address": "0x40013C00",
+        "offset": "0x00",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "MR%s",
+            "position": 0,
+            "width": 1,
+            "access": "RW"
+          }
+        ],
+        "timing_constraints": []
+      },
+      "ground_truth": {
+        "peripheral": "EXTI",
+        "register_name": "IMR",
+        "base_address": "0x40013C00",
+        "offset": "0x00",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "MR%s",
+            "position": 0,
+            "width": 1,
+            "access": "RW"
+          }
+        ],
+        "timing_constraints": []
+      }
+    },
+    {
+      "id": "mcu_bench_014",
+      "mcu_family": "STM32F401",
+      "query": "Extract SYSCFG EXTICR1 register EXTI0 to EXTI3 field positions and widths.",
+      "peripheral": "SYSCFG",
+      "register": "EXTICR1",
+      "datasheet_stem": "stm32f401-rm",
+      "svd_stem": "stm32f401",
+      "page_image": null,
+      "ground_truth_json": {
+        "peripheral": "SYSCFG",
+        "register_name": "EXTICR1",
+        "base_address": "0x40013800",
+        "offset": "0x08",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "EXTI0",
+            "position": 0,
+            "width": 4,
+            "access": "RW"
+          },
+          {
+            "name": "EXTI1",
+            "position": 4,
+            "width": 4,
+            "access": "RW"
+          },
+          {
+            "name": "EXTI2",
+            "position": 8,
+            "width": 4,
+            "access": "RW"
+          },
+          {
+            "name": "EXTI3",
+            "position": 12,
+            "width": 4,
+            "access": "RW"
+          }
+        ],
+        "timing_constraints": []
+      },
+      "ground_truth": {
+        "peripheral": "SYSCFG",
+        "register_name": "EXTICR1",
+        "base_address": "0x40013800",
+        "offset": "0x08",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "EXTI0",
+            "position": 0,
+            "width": 4,
+            "access": "RW"
+          },
+          {
+            "name": "EXTI1",
+            "position": 4,
+            "width": 4,
+            "access": "RW"
+          },
+          {
+            "name": "EXTI2",
+            "position": 8,
+            "width": 4,
+            "access": "RW"
+          },
+          {
+            "name": "EXTI3",
+            "position": 12,
+            "width": 4,
+            "access": "RW"
+          }
+        ],
+        "timing_constraints": []
+      }
+    },
+    {
+      "id": "mcu_bench_015",
+      "mcu_family": "RP2040",
+      "query": "Extract SIO GPIO_OUT register base address, offset, and bit layout for output.",
+      "peripheral": "SIO",
+      "register": "GPIO_OUT",
+      "datasheet_stem": "RP2040-datasheet",
+      "svd_stem": "RP2040",
+      "page_image": null,
+      "ground_truth_json": {
+        "peripheral": "SIO",
+        "register_name": "GPIO_OUT",
+        "base_address": "0xD0000000",
+        "offset": "0x10",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "GPIO_OUT",
+            "position": 0,
+            "width": 30,
+            "access": "RW"
+          }
+        ],
+        "timing_constraints": []
+      },
+      "ground_truth": {
+        "peripheral": "SIO",
+        "register_name": "GPIO_OUT",
+        "base_address": "0xD0000000",
+        "offset": "0x10",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "GPIO_OUT",
+            "position": 0,
+            "width": 30,
+            "access": "RW"
+          }
+        ],
+        "timing_constraints": []
+      }
+    },
+    {
+      "id": "mcu_bench_016",
+      "mcu_family": "RP2040",
+      "query": "Extract SIO GPIO_OE output enable register base address and bit layout.",
+      "peripheral": "SIO",
+      "register": "GPIO_OE",
+      "datasheet_stem": "RP2040-datasheet",
+      "svd_stem": "RP2040",
+      "page_image": null,
+      "ground_truth_json": {
+        "peripheral": "SIO",
+        "register_name": "GPIO_OE",
+        "base_address": "0xD0000000",
+        "offset": "0x20",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "GPIO_OE",
+            "position": 0,
+            "width": 30,
+            "access": "RW"
+          }
+        ],
+        "timing_constraints": []
+      },
+      "ground_truth": {
+        "peripheral": "SIO",
+        "register_name": "GPIO_OE",
+        "base_address": "0xD0000000",
+        "offset": "0x20",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "GPIO_OE",
+            "position": 0,
+            "width": 30,
+            "access": "RW"
+          }
+        ],
+        "timing_constraints": []
+      }
+    },
+    {
+      "id": "mcu_bench_017",
+      "mcu_family": "RP2040",
+      "query": "Extract UART0 UARTDR data register bit fields including DATA and error flags.",
+      "peripheral": "UART0",
+      "register": "UARTDR",
+      "datasheet_stem": "RP2040-datasheet",
+      "svd_stem": "RP2040",
+      "page_image": null,
+      "ground_truth_json": {
+        "peripheral": "UART0",
+        "register_name": "UARTDR",
+        "base_address": "0x40034000",
+        "offset": "0x00",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "DATA",
+            "position": 0,
+            "width": 8,
+            "access": "RW"
+          },
+          {
+            "name": "FE",
+            "position": 8,
+            "width": 1,
+            "access": "RO"
+          },
+          {
+            "name": "PE",
+            "position": 9,
+            "width": 1,
+            "access": "RO"
+          },
+          {
+            "name": "BE",
+            "position": 10,
+            "width": 1,
+            "access": "RO"
+          },
+          {
+            "name": "OE",
+            "position": 11,
+            "width": 1,
+            "access": "RO"
+          }
+        ],
+        "timing_constraints": []
+      },
+      "ground_truth": {
+        "peripheral": "UART0",
+        "register_name": "UARTDR",
+        "base_address": "0x40034000",
+        "offset": "0x00",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "DATA",
+            "position": 0,
+            "width": 8,
+            "access": "RW"
+          },
+          {
+            "name": "FE",
+            "position": 8,
+            "width": 1,
+            "access": "RO"
+          },
+          {
+            "name": "PE",
+            "position": 9,
+            "width": 1,
+            "access": "RO"
+          },
+          {
+            "name": "BE",
+            "position": 10,
+            "width": 1,
+            "access": "RO"
+          },
+          {
+            "name": "OE",
+            "position": 11,
+            "width": 1,
+            "access": "RO"
+          }
+        ],
+        "timing_constraints": []
+      }
+    },
+    {
+      "id": "mcu_bench_018",
+      "mcu_family": "RP2040",
+      "query": "Extract TIMER TIMEHR high bits register address and bit layout.",
+      "peripheral": "TIMER",
+      "register": "TIMEHR",
+      "datasheet_stem": "RP2040-datasheet",
+      "svd_stem": "RP2040",
+      "page_image": null,
+      "ground_truth_json": {
+        "peripheral": "TIMER",
+        "register_name": "TIMEHR",
+        "base_address": "0x40054000",
+        "offset": "0x08",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "TIMEHR",
+            "position": 0,
+            "width": 32,
+            "access": "RO"
+          }
+        ],
+        "timing_constraints": []
+      },
+      "ground_truth": {
+        "peripheral": "TIMER",
+        "register_name": "TIMEHR",
+        "base_address": "0x40054000",
+        "offset": "0x08",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "TIMEHR",
+            "position": 0,
+            "width": 32,
+            "access": "RO"
+          }
+        ],
+        "timing_constraints": []
+      }
+    },
+    {
+      "id": "mcu_bench_019",
+      "mcu_family": "RP2040",
+      "query": "Extract RESETS RESET register with peripheral reset control bit positions.",
+      "peripheral": "RESETS",
+      "register": "RESET",
+      "datasheet_stem": "RP2040-datasheet",
+      "svd_stem": "RP2040",
+      "page_image": null,
+      "ground_truth_json": {
+        "peripheral": "RESETS",
+        "register_name": "RESET",
+        "base_address": "0x4000C000",
+        "offset": "0x00",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "ADC",
+            "position": 0,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "BUSCTRL",
+            "position": 1,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "DMA",
+            "position": 2,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "I2C0",
+            "position": 3,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "I2C1",
+            "position": 4,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "IO_BANK0",
+            "position": 5,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "IO_QSPI",
+            "position": 6,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "JTAG",
+            "position": 7,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "PADS_BANK0",
+            "position": 8,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "PADS_QSPI",
+            "position": 9,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "PIO0",
+            "position": 10,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "PIO1",
+            "position": 11,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "PLL_SYS",
+            "position": 12,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "PLL_USB",
+            "position": 13,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "PWM",
+            "position": 14,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "RTC",
+            "position": 15,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "SPI0",
+            "position": 16,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "SPI1",
+            "position": 17,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "SYSCFG",
+            "position": 18,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "SYSINFO",
+            "position": 19,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "TBMAN",
+            "position": 20,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "TIMER",
+            "position": 21,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "UART0",
+            "position": 22,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "UART1",
+            "position": 23,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "USBCTRL",
+            "position": 24,
+            "width": 1,
+            "access": "RW"
+          }
+        ],
+        "timing_constraints": []
+      },
+      "ground_truth": {
+        "peripheral": "RESETS",
+        "register_name": "RESET",
+        "base_address": "0x4000C000",
+        "offset": "0x00",
+        "register_size": 32,
+        "bits": [
+          {
+            "name": "ADC",
+            "position": 0,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "BUSCTRL",
+            "position": 1,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "DMA",
+            "position": 2,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "I2C0",
+            "position": 3,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "I2C1",
+            "position": 4,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "IO_BANK0",
+            "position": 5,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "IO_QSPI",
+            "position": 6,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "JTAG",
+            "position": 7,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "PADS_BANK0",
+            "position": 8,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "PADS_QSPI",
+            "position": 9,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "PIO0",
+            "position": 10,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "PIO1",
+            "position": 11,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "PLL_SYS",
+            "position": 12,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "PLL_USB",
+            "position": 13,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "PWM",
+            "position": 14,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "RTC",
+            "position": 15,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "SPI0",
+            "position": 16,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "SPI1",
+            "position": 17,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "SYSCFG",
+            "position": 18,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "SYSINFO",
+            "position": 19,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "TBMAN",
+            "position": 20,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "TIMER",
+            "position": 21,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "UART0",
+            "position": 22,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "UART1",
+            "position": 23,
+            "width": 1,
+            "access": "RW"
+          },
+          {
+            "name": "USBCTRL",
+            "position": 24,
+            "width": 1,
+            "access": "RW"
+          }
+        ],
+        "timing_constraints": []
+      }
+    }
+  ]
+}

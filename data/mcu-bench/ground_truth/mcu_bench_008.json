@@ -1,0 +1,58 @@
+{
+  "peripheral": "TIM2",
+  "register_name": "CR1",
+  "base_address": "0x40000000",
+  "offset": "0x00",
+  "register_size": 32,
+  "bits": [
+    {
+      "name": "CEN",
+      "position": 0,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "UDIS",
+      "position": 1,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "URS",
+      "position": 2,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "OPM",
+      "position": 3,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "DIR",
+      "position": 4,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "CMS",
+      "position": 5,
+      "width": 2,
+      "access": "RW"
+    },
+    {
+      "name": "ARPE",
+      "position": 7,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "CKD",
+      "position": 8,
+      "width": 2,
+      "access": "RW"
+    }
+  ],
+  "timing_constraints": []
+}

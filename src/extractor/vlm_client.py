@@ -59,7 +59,7 @@ class VLMClient:
             return self._extract_openai_compatible(prompt_text, query, page_context, mismatch_report)
         if self.provider.name == "ollama":
             return self._extract_ollama(prompt_text, query, page_context, mismatch_report)
-        if self.provider.name == "llava":
+        if self.provider.name in ("llava", "qwen2_5_vl"):
             return self._extract_llava(prompt_text, query, page_context, mismatch_report)
         raise ValueError(f"Unsupported provider: {self.provider.name}")
 
@@ -70,92 +70,107 @@ class VLMClient:
         page_context: list[dict[str, Any]],
         mismatch_report: dict[str, Any] | None,
     ) -> VLMResponse:
-        """Extract via Gemini using its OpenAI-compatible endpoint with inline vision.
+        """Extract via the official Google GenAI SDK (google-genai).
 
-        Sends up to 3 rendered page images as base64 data-URIs inside the user
-        message content array.  Text page context is also included compactly.
-        Gemini 2.0 Flash handles both image reading and structured JSON output.
+        Uses client.models.generate_content with multimodal Parts and requests
+        strict JSON output via response_mime_type=application/json.
         """
+
         _load_local_env_files()
-        api_key = os.getenv(self.provider.api_key_env or "GEMINI_API_KEY")
+        configured_env = self.provider.api_key_env or "GEMINI_API_KEY"
+        api_key = os.getenv(configured_env) or os.getenv("GOOGLE_API_KEY")
         if not api_key:
             raise RuntimeError(
-                "Missing Gemini API key — set GEMINI_API_KEY in .env or environment."
+                "Missing Gemini API key -- set GEMINI_API_KEY (or GOOGLE_API_KEY) in .env or environment."
             )
 
-        # Build compact text context (no image paths — images go inline below).
+        try:
+            from google import genai
+            from google.genai import errors as genai_errors
+            from google.genai import types
+        except ImportError as exc:
+            raise RuntimeError(
+                "Gemini provider requires the official Google GenAI SDK. "
+                "Install with: pip install google-genai"
+            ) from exc
+
+        # Build compact text context.
         compact_pages = [
             {
-                "page_id": page.get("page_id"),
+                "page_id":    page.get("page_id"),
                 "page_number": page.get("page_number"),
-                "page_text": str(page.get("page_text", ""))[:1200],
+                "page_text":  str(page.get("page_text", ""))[:1200],
             }
             for page in page_context
         ]
         text_block = json.dumps(
-            {
-                "query": query,
-                "pages": compact_pages,
-                "mismatch_report": mismatch_report,
-            },
+            {"query": query, "pages": compact_pages, "mismatch_report": mismatch_report},
             indent=2,
         )
 
-        # User message content: text first, then up to 3 page images inline.
-        user_content: list[dict[str, Any]] = [
-            {"type": "text", "text": text_block}
+        # Build parts: system instructions + text context + up to 3 page images.
+        parts: list[Any] = [
+            types.Part.from_text(text=f"{prompt_text}\n\n{text_block}")
         ]
+
         images_added = 0
         for page in page_context:
             if images_added >= 3:
                 break
             image_path = page.get("image_path")
             if image_path and Path(image_path).exists():
-                b64 = base64.b64encode(Path(image_path).read_bytes()).decode("utf-8")
-                user_content.append(
-                    {
-                        "type": "image_url",
-                        "image_url": {"url": f"data:image/png;base64,{b64}"},
-                    }
-                )
+                image_bytes = Path(image_path).read_bytes()
+                parts.append(types.Part.from_bytes(data=image_bytes, mime_type="image/png"))
                 images_added += 1
 
-        messages = [
-            {"role": "system", "content": prompt_text},
-            {"role": "user", "content": user_content},
-        ]
-
-        url_base = self.provider.base_url or "https://generativelanguage.googleapis.com/v1beta/openai"
-        endpoint = f"{url_base.rstrip('/')}/chat/completions"
-        body: dict[str, Any] = {
-            "model": self.provider.model,
-            "messages": messages,
-            "temperature": 0,
-            # Gemini supports response_format json_object via its OpenAI-compat endpoint.
-            "response_format": {"type": "json_object"},
-        }
-
-        req = request.Request(
-            endpoint,
-            data=json.dumps(body).encode("utf-8"),
-            method="POST",
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json",
-                "User-Agent": "KarcinoJen/1.0 (datasheet-driver-generator)",
-            },
-        )
+        model = self.provider.model or "gemini-2.0-flash"
+        client = genai.Client(api_key=api_key)
 
         try:
-            with request.urlopen(req, timeout=self.provider.timeout_seconds) as response:
-                payload = json.loads(response.read().decode("utf-8"))
-        except error.HTTPError as exc:
-            details = exc.read().decode("utf-8", errors="replace")
-            raise RuntimeError(f"Gemini request failed: {exc.code} {details}") from exc
+            response = client.models.generate_content(
+                model=model,
+                contents=parts,
+                config=types.GenerateContentConfig(
+                    temperature=0,
+                    response_mime_type="application/json",
+                ),
+            )
+        except genai_errors.APIError as exc:
+            status = getattr(exc, "status", None)
+            message = getattr(exc, "message", None)
+            detail = " | ".join(str(item) for item in [status, message] if item)
+            if not detail:
+                detail = str(exc)
+            raise RuntimeError(f"Gemini request failed: {exc.code} {detail[:400]}") from exc
+        except Exception as exc:
+            raise RuntimeError(f"Gemini request failed: {type(exc).__name__}: {exc}") from exc
 
-        content = payload["choices"][0]["message"]["content"]
+        # SDK usually exposes `response.text`; if empty, reconstruct from candidates.
+        content = str(getattr(response, "text", "") or "").strip()
+        if not content:
+            candidates = getattr(response, "candidates", None) or []
+            for candidate in candidates:
+                candidate_content = getattr(candidate, "content", None)
+                candidate_parts = getattr(candidate_content, "parts", None) if candidate_content else None
+                if not candidate_parts:
+                    continue
+
+                text_chunks: list[str] = []
+                for part in candidate_parts:
+                    chunk = getattr(part, "text", None)
+                    if chunk:
+                        text_chunks.append(str(chunk))
+
+                if text_chunks:
+                    content = "\n".join(text_chunks).strip()
+                    break
+
+        if not content:
+            raise RuntimeError("Gemini request failed: empty response content")
+
         parsed = _parse_json_object(content)
         return VLMResponse(raw_text=content, parsed_json=parsed)
+
 
 
     def _extract_openai_compatible(

@@ -1,0 +1,82 @@
+{
+  "peripheral": "RCC",
+  "register_name": "APB1ENR",
+  "base_address": "0x40023800",
+  "offset": "0x40",
+  "register_size": 32,
+  "bits": [
+    {
+      "name": "TIM2EN",
+      "position": 0,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "TIM3EN",
+      "position": 1,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "TIM4EN",
+      "position": 2,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "TIM5EN",
+      "position": 3,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "WWDGEN",
+      "position": 11,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "SPI2EN",
+      "position": 14,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "SPI3EN",
+      "position": 15,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "USART2EN",
+      "position": 17,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "I2C1EN",
+      "position": 21,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "I2C2EN",
+      "position": 22,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "I2C3EN",
+      "position": 23,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "PWREN",
+      "position": 28,
+      "width": 1,
+      "access": "RW"
+    }
+  ],
+  "timing_constraints": []
+}

@@ -2,7 +2,40 @@
 
 KarcinoJen turns a datasheet and a natural-language register query into generated driver code.
 
-## What It Does
+## Quick Start
+
+### GPU-Accelerated Local Setup (Recommended)
+
+For maximum performance with ColPali visual embeddings on your GPU:
+
+```bash
+# 1. Clone and setup
+git clone <repo-url> KarcinoJen && cd KarcinoJen
+python -m venv .venv && source .venv/bin/activate  # or .venv\Scripts\activate on Windows
+
+# 2. Install PyTorch with CUDA support
+pip install torch --index-url https://download.pytorch.org/whl/cu118
+pip install -r requirements.txt
+
+# 3. Set API keys
+export GEMINI_API_KEY="sk-..."
+export GROQ_API_KEY="gsk-..."
+
+# 4. Verify setup
+python scripts/validate_setup.py
+
+# 5. Run your first extraction
+python scripts/run_pipeline.py --datasheet data/datasheets/stm32f401-rm.pdf --query "Extract GPIOA MODER register..."
+```
+
+### Google Colab (Free GPU)
+
+Open in Colab (**recommended for no local setup**):
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/YOUR_USERNAME/KarcinoJen/blob/main/notebooks/KarcinoJen_Colab.ipynb)
+
+Or follow the notebook walkthrough in [docs/CUDA_COLAB_SETUP.md](docs/CUDA_COLAB_SETUP.md#google-colab-setup).
+
+---
 
 The supported flow is a single path:
 - input a datasheet PDF
@@ -54,47 +87,43 @@ python scripts/run_pipeline.py --datasheet data/datasheets/stm32f401-rm.pdf --qu
 
 ## Notes
 
+- **CUDA Setup**: See [docs/CUDA_COLAB_SETUP.md](docs/CUDA_COLAB_SETUP.md) for detailed GPU acceleration setup and troubleshooting.
+- **Google Colab**: Pre-configured notebook in `notebooks/KarcinoJen_Colab.ipynb` with automatic GPU and dependency setup.
 - The old benchmark-style package runners and replay modes are no longer the main path.
 - The pipeline keeps validation as a guardrail, but it is not exposed as a separate mode.
 - You still need a configured Python 3.11 environment with the project dependencies installed.
 
 ## Retrieval Utilities
 
-You can prebuild Chroma collections for all local datasheets:
+You can compare ColPali and lexical retrieval quality and latency:
 
 ```powershell
-python scripts/prebuild_chroma_index.py
+python scripts/run_tests.py --backend colpali
 ```
 
-You can compare lexical vs Chroma retrieval quality and latency:
+For a lexical fallback run:
 
 ```powershell
-python scripts/compare_retrieval_backends.py
+python scripts/run_tests.py --backend lexical
 ```
 
-Optional inputs for comparison:
-
-```powershell
-python scripts/compare_retrieval_backends.py --datasheet data/datasheets/stm32f401-ds.pdf --queries data/mcu-bench/queries.jsonl
-```
-
-If the `--queries` file is missing, the comparison script runs a built-in fallback query set.
+ColPali remains the canonical retrieval path. Lexical is the reliability fallback and ablation.
 
 ## Recommendation For Project And Paper
 
 For the paper, the best free and efficient setup is:
 
-1. Retrieval: Chroma, with lexical as baseline and fallback.
-2. Local vision model: Ollama `llava:7b`.
-3. API-key text model: Groq `llama-3.1-8b-instant`.
+1. Retrieval: ColPali (canonical), with lexical as baseline and fallback.
+2. VLM extraction order: Gemini Flash -> LLaVA -> Qwen-VL.
+3. Synthesis order: Groq first, then local models via Ollama.
 
 Why this combination fits the use case:
-- Chroma gives you the semantic retrieval story for the paper.
-- Ollama Llava keeps the multimodal path fully local and free.
+- ColPali preserves visual semantics for table-heavy datasheets.
+- Gemini Flash gives a strong multimodal primary extractor.
 - Groq gives fast structured text generation without running your own large text model.
 - Lexical retrieval stays useful for ablations and low-latency fallback.
 
-If you want one sentence to describe the architecture: local vision for evidence reading, Groq for text synthesis and validation, Chroma for retrieval.
+If you want one sentence to describe the architecture: ColPali visual retrieval for evidence grounding, Gemini-first VLM extraction with local VLM fallbacks, and Groq-first synthesis with local fallback.
 
 ## Provider Setup (Ollama And Groq)
 

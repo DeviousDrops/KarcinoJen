@@ -58,8 +58,8 @@ data/mcu-bench/runs/*/
 data/mcu-bench/runs/*/**
 !data/mcu-bench/runs/.gitignore
 
-# Local vector store and retrieval comparison outputs
-data/chroma/*
-!data/chroma/.gitignore
+# Local retrieval index outputs
+data/colpali_index/*
+!data/colpali_index/.gitignore
 runs/retrieval_compare/*
 !runs/retrieval_compare/.gitignore

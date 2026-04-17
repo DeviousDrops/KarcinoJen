@@ -1,0 +1,16 @@
+{
+  "peripheral": "GPIOA",
+  "register_name": "ODR",
+  "base_address": "0x40020000",
+  "offset": "0x14",
+  "register_size": 32,
+  "bits": [
+    {
+      "name": "ODR%s",
+      "position": 0,
+      "width": 1,
+      "access": "RW"
+    }
+  ],
+  "timing_constraints": []
+}

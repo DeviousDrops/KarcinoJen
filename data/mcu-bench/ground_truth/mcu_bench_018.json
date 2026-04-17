@@ -1,0 +1,16 @@
+{
+  "peripheral": "TIMER",
+  "register_name": "TIMEHR",
+  "base_address": "0x40054000",
+  "offset": "0x08",
+  "register_size": 32,
+  "bits": [
+    {
+      "name": "TIMEHR",
+      "position": 0,
+      "width": 32,
+      "access": "RO"
+    }
+  ],
+  "timing_constraints": []
+}

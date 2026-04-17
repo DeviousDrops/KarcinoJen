@@ -1,0 +1,16 @@
+{
+  "peripheral": "SIO",
+  "register_name": "GPIO_OUT",
+  "base_address": "0xD0000000",
+  "offset": "0x10",
+  "register_size": 32,
+  "bits": [
+    {
+      "name": "GPIO_OUT",
+      "position": 0,
+      "width": 30,
+      "access": "RW"
+    }
+  ],
+  "timing_constraints": []
+}

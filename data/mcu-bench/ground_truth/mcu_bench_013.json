@@ -1,0 +1,16 @@
+{
+  "peripheral": "EXTI",
+  "register_name": "IMR",
+  "base_address": "0x40013C00",
+  "offset": "0x00",
+  "register_size": 32,
+  "bits": [
+    {
+      "name": "MR%s",
+      "position": 0,
+      "width": 1,
+      "access": "RW"
+    }
+  ],
+  "timing_constraints": []
+}

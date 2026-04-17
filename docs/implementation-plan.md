@@ -4,6 +4,8 @@
 
 KarcinoJen is a paper-first research prototype that generates verifiable C driver snippets from vendor MCU datasheet PDFs using a visual-first RAG pipeline, prompt engineering, and deterministic CMSIS-SVD checks.
 
+For the IEEE draft, the canonical claim is multimodal-first retrieval (ColPali) feeding a VLM extractor, followed by deterministic CoVe validation and text-LLM synthesis.
+
 ## Project Goal
 
 Create an end-to-end system that:
@@ -45,13 +47,35 @@ Rationale:
 |---|---|---|---|
 | 1 | Offline | PDF page renderer (300 dpi) | Page images |
 | 2 | Offline | ColPali visual encoder | Patch embeddings (multi-vector) |
-| 3 | Offline | ChromaDB visual index | Stored page vectors + image + metadata |
+| 3 | Offline | ColPali local index store | Stored page vectors + image + metadata |
 | 4 | Online | Hybrid retrieval (MaxSim + BM25 hex boost + RRF) | Top-k relevant page images |
-| 5 | Online | VLM register and timing extractor (LLaVA/GPT-4V) | Structured register+timing JSON |
+| 5 | Online | VLM register and timing extractor (Gemini primary; LLaVA/Qwen2.5-VL fallback) | Structured register+timing JSON |
 | 6 | Online | SVD + timing symbolic validator | Pass/fail + mismatch report |
 | 7 | Online (fail path) | CoVe correction loop (max 3) | Corrected JSON or UNCERTAIN |
-| 8 | Online | Code synthesis agent | driver.h + driver.c + audit_trace.json |
+| 8 | Online | Text-LLM synthesis and enrichment (Groq primary, local fallback) | driver.h + driver.c + audit_trace.json |
 | 9 | Output | Verification and scoring | PASS@K and final deliverables |
+
+## IEEE Draft Update: Modality And Runtime Profiles
+
+Canonical profile (paper claim):
+- Retrieval: ColPali MaxSim fused with lexical evidence.
+- Extraction: VLM consumes retrieved page images.
+- Guardrails: deterministic SVD checks and CoVe retries.
+- Generation: text LLM synthesizes and enriches C code from validated JSON.
+
+Why the VLM is still essential:
+- Datasheet truth is often encoded in tables and layout, not plain text spans.
+- Multimodal retrieval selects visually relevant pages before extraction.
+- The VLM reads the page image structure directly; text snippets are auxiliary hints.
+
+Resource-constrained profile (ablation/fallback only):
+- Retrieval runs in lexical mode when ColPali is unavailable.
+- Retrieved pages are still rendered and sent as images to the VLM.
+- This mode is valid for robustness experiments but not the primary architecture claim.
+
+Recommended reproducible runtime:
+- Use a Google Colab GPU runtime for canonical ColPali experiments.
+- Keep local CPU/low-VRAM runs for fallback baselines and quick iteration.
 
 ## Two-Day Prompt-Engineering Sprint
 
@@ -114,12 +138,17 @@ Baseline 2: KarcinoJen without CoVe
 - Full retrieval and SVD validation enabled.
 - Stage 7 disabled. Validation failure remains failure.
 
+Baseline 3: Resource-constrained retrieval ablation
+- Retrieval backend forced to lexical with all later stages unchanged.
+- Measures how much multimodal retrieval contributes versus fallback retrieval.
+
 Proposed method: Full KarcinoJen
 - Full pipeline with SVD validation and CoVe retries (max 3).
 
 Primary table in paper:
-- PASS@K for all three methods.
-- Absolute and relative gain from Baseline 1 to Baseline 2 to Full system.
+- PASS@K for Baseline 1, Baseline 2, Baseline 3, and Full system.
+- Absolute and relative gain from fallback retrieval to multimodal retrieval.
+- CoVe recovery delta with and without multimodal retrieval.
 
 ## Proposed Repository Layout
 
@@ -194,6 +223,9 @@ For each category report:
 - Risk: visually similar but wrong register pages retrieved.
   Mitigation: hybrid retrieval + RRF + hex-token boosting.
 
+- Risk: local GPU memory exhaustion during ColPali indexing/retrieval.
+  Mitigation: default canonical experiments to Google Colab GPU runtime; keep lexical fallback profile for local runs.
+
 - Risk: VLM hallucinated addresses or bit fields.
   Mitigation: strict schema validation + SVD deterministic checks.
 
@@ -212,4 +244,4 @@ For each category report:
 2. Finalize prompt templates for extraction, correction, and synthesis with versioned run notes.
 3. Prioritize validator and CoVe reliability before expanding benchmark coverage.
 4. Keep synthesis deterministic and traceable for paper evidence.
-5. Produce one credible demo path first, then extend only if time remains.
+5. Use the Colab notebook path for canonical multimodal runs and local fallback runs for ablations.

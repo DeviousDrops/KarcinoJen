@@ -97,8 +97,8 @@ def _build_extraction_fallback_clients(cfg) -> list[VLMClient]:
         seen.add(provider_name)
 
     if cfg.selected_provider == "gemini":
-        _add("qwen2_5_vl")
-        _add("llava")
+        # Gemini-only test mode: do not add local VLM fallbacks.
+        return clients
     elif cfg.selected_provider in ("llava", "qwen2_5_vl"):
         _add("qwen2_5_vl" if cfg.selected_provider == "llava" else "llava")
         _add("gemini")

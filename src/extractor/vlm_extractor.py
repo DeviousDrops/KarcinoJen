@@ -32,6 +32,20 @@ class Stage5Result:
     attempts: list[ExtractionAttempt]
 
 
+def _pages_for_attempt(
+    pages: list[dict[str, Any]],
+    *,
+    provider_name: str,
+    attempt: int,
+) -> list[dict[str, Any]]:
+    """Use one-page Gemini payloads to lower load on heavy multimodal requests."""
+    if provider_name != "gemini" or len(pages) <= 1:
+        return pages
+
+    page_index = (attempt - 1) % len(pages)
+    return [pages[page_index]]
+
+
 def _looks_like_non_retryable_failure(message: str) -> bool:
     text = message.lower()
     markers = [
@@ -94,11 +108,17 @@ def run_stage5_extraction(
             mismatch_report=json.dumps(mismatch_report, indent=2)
         )
 
+        request_page_context = _pages_for_attempt(
+            page_context,
+            provider_name=client.provider.name,
+            attempt=attempt,
+        )
+
         try:
             response = client.extract(
                 prompt_text=prompt_text,
                 query=query,
-                page_context=page_context,
+                page_context=request_page_context,
                 mismatch_report=mismatch_report,
             )
         except Exception as exc:
@@ -180,12 +200,17 @@ def run_stage5_extraction(
                 if fallback_client.provider.name in ("llava", "qwen2_5_vl")
                 else text_only_page_context
             )
+            request_fallback_context = _pages_for_attempt(
+                fallback_page_context,
+                provider_name=fallback_client.provider.name,
+                attempt=index,
+            )
 
             try:
                 response = fallback_client.extract(
                     prompt_text=prompt_text,
                     query=query,
-                    page_context=fallback_page_context,
+                    page_context=request_fallback_context,
                     mismatch_report=mismatch_report,
                 )
             except Exception as exc:

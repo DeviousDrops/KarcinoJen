@@ -115,6 +115,19 @@ def _build_mismatch_report(validation: ValidationResult) -> dict[str, Any]:
     }
 
 
+def _pages_for_attempt(
+    pages: list[dict[str, Any]],
+    *,
+    provider_name: str,
+    attempt: int,
+) -> list[dict[str, Any]]:
+    if provider_name != "gemini" or len(pages) <= 1:
+        return pages
+
+    page_index = (attempt - 1) % len(pages)
+    return [pages[page_index]]
+
+
 def run_cove_loop(
     initial_extraction: dict[str, Any],
     registers: dict[str, RegisterDef],
@@ -191,11 +204,16 @@ def run_cove_loop(
                     provider_name,
                     validation.message,
                 )
+                candidate_page_context = _pages_for_attempt(
+                    page_context,
+                    provider_name=provider_name,
+                    attempt=attempt,
+                )
                 try:
                     response = candidate.extract(
                         prompt_text=cove_prompt,
                         query=query,
-                        page_context=page_context,
+                        page_context=candidate_page_context,
                         mismatch_report=mismatch_report,
                     )
 

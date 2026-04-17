@@ -31,7 +31,7 @@
       "timeout_seconds": 180
     },
     "qwen2_5_vl": {
-      "model": "qwen2.5-vl:7b",
+      "model": "qwen2.5vl:7b",
       "endpoint_env": "OLLAMA_ENDPOINT",
       "timeout_seconds": 240
     }

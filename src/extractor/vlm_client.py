@@ -240,7 +240,12 @@ class VLMClient:
             raise RuntimeError(f"{self.provider.name} request failed: {exc.code} {details}") from exc
 
         content = payload["choices"][0]["message"]["content"]
-        parsed = _parse_json_object(content)
+        try:
+            parsed = _parse_json_object(content)
+        except json.JSONDecodeError:
+            # Some providers (notably Groq chat models) can return malformed JSON
+            # while still producing usable raw code/text content.
+            parsed = {}
         return VLMResponse(raw_text=content, parsed_json=parsed)
 
     def _extract_ollama(

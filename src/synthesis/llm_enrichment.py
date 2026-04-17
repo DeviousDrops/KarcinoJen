@@ -3,9 +3,31 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 from src.extractor.vlm_client import VLMClient
+
+
+def _decode_json_string_literal(encoded: str) -> str:
+    try:
+        return json.loads(f'"{encoded}"')
+    except Exception:
+        return encoded.replace("\\n", "\n").replace("\\t", "\t").replace('\\"', '"')
+
+
+def _extract_code_from_jsonish(raw: str) -> str | None:
+    for key in ("driver_c", "code", "content"):
+        pattern = rf'"{key}"\s*:\s*"((?:\\.|[^"\\])*)"'
+        match = re.search(pattern, raw, flags=re.DOTALL)
+        if not match:
+            continue
+
+        candidate = _decode_json_string_literal(match.group(1)).strip()
+        if candidate and "#include \"driver.h\"" in candidate:
+            return candidate
+
+    return None
 
 
 def _extract_driver_c_from_response(response) -> str | None:
@@ -16,6 +38,24 @@ def _extract_driver_c_from_response(response) -> str | None:
             return value.strip()
 
     raw = str(response.raw_text or "").strip()
+
+    # Recover from malformed JSON wrappers (common in some LLM responses).
+    jsonish = _extract_code_from_jsonish(raw)
+    if jsonish:
+        return jsonish
+
+    # Prefer fenced C blocks when present.
+    fenced = re.search(r"```(?:c|C)?\s*(.*?)```", raw, flags=re.DOTALL)
+    if fenced:
+        candidate = fenced.group(1).strip()
+        if candidate and "#include \"driver.h\"" in candidate:
+            return candidate
+
+    # Fall back to include-based slicing for plain text responses.
+    include_pos = raw.find("#include \"driver.h\"")
+    if include_pos >= 0:
+        return raw[include_pos:].strip()
+
     if raw.startswith("#include") and "void " in raw:
         return raw
     return None

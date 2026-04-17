@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import json
+import time
 from typing import Any
 
 from src.extractor.model_config import ExtractionConfig
@@ -31,7 +32,7 @@ class Stage5Result:
     attempts: list[ExtractionAttempt]
 
 
-def _looks_like_auth_failure(message: str) -> bool:
+def _looks_like_non_retryable_failure(message: str) -> bool:
     text = message.lower()
     markers = [
         "401",
@@ -41,6 +42,13 @@ def _looks_like_auth_failure(message: str) -> bool:
         "missing api key",
         "permission denied",
         "forbidden",
+    ]
+    return any(marker in text for marker in markers)
+
+
+def _looks_like_transient_failure(message: str) -> bool:
+    text = message.lower()
+    markers = [
         "429",
         "resource_exhausted",
         "quota exceeded",
@@ -48,6 +56,9 @@ def _looks_like_auth_failure(message: str) -> bool:
         "unavailable",
         "high demand",
         "try again later",
+        "timed out",
+        "timeout",
+        "connection reset",
     ]
     return any(marker in text for marker in markers)
 
@@ -108,10 +119,15 @@ def run_stage5_extraction(
                 "errors": [exc_text],
             }
 
-            # Authentication failures are deterministic; jump to fallback clients immediately.
-            if _looks_like_auth_failure(exc_text):
+            # Auth/permission failures are deterministic; jump to fallback clients immediately.
+            if _looks_like_non_retryable_failure(exc_text):
                 stop_primary_retries = True
                 break
+
+            # Transient provider-side failures (e.g. 503/429) should retry primary first.
+            if _looks_like_transient_failure(exc_text) and attempt < extraction_cfg.max_attempts:
+                backoff_seconds = min(8.0, 1.5 * (2 ** (attempt - 1)))
+                time.sleep(backoff_seconds)
 
             continue
 

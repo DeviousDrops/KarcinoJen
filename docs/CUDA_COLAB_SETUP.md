@@ -377,7 +377,7 @@ torch.cuda.empty_cache()
 
 **Solution:**
 1. Start Ollama locally: `ollama serve`
-2. Pull model: `ollama pull qwen2.5-vl:7b`
+2. Pull model: `ollama pull qwen2.5vl:7b`
 3. Set endpoint: `export OLLAMA_ENDPOINT=http://localhost:11434`
 4. Or use Gemini/LLaVA fallback (no local setup needed)
 

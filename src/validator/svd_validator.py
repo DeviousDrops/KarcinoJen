@@ -61,6 +61,73 @@ def _levenshtein_distance(a: str, b: str) -> int:
     return previous[-1]
 
 
+def _to_alnum_upper(value: str) -> str:
+    return "".join(char for char in value.upper() if char.isalnum())
+
+
+def _name_variants(name: str, peripheral_hint: str = "") -> set[str]:
+    """Generate robust name variants for fuzzy matching.
+
+    Examples:
+    - USART_CR1 -> {"USARTCR1", "USART", "CR1"}
+    - CR1 -> {"CR1"}
+    - If peripheral_hint is USART2, also adds suffix-stripped variants like CR1
+      when a variant starts with USART2/USART.
+    """
+    text = str(name).strip().upper()
+    variants: set[str] = set()
+
+    compact = _to_alnum_upper(text)
+    if compact:
+        variants.add(compact)
+
+    token = ""
+    for char in text:
+        if char.isalnum():
+            token += char
+            continue
+        if token:
+            variants.add(_to_alnum_upper(token))
+            token = ""
+    if token:
+        variants.add(_to_alnum_upper(token))
+
+    hint = _to_alnum_upper(peripheral_hint)
+    hint_variants: set[str] = set()
+    if hint:
+        hint_variants.add(hint)
+        hint_alpha = hint.rstrip("0123456789")
+        if hint_alpha:
+            hint_variants.add(hint_alpha)
+
+    for variant in list(variants):
+        for hint_variant in hint_variants:
+            if len(variant) > len(hint_variant) + 1 and variant.startswith(hint_variant):
+                variants.add(variant[len(hint_variant) :])
+
+    return {variant for variant in variants if variant}
+
+
+def _name_distance(
+    extracted_register_name: str,
+    candidate_register_name: str,
+    extracted_peripheral: str,
+) -> int:
+    extracted_variants = _name_variants(extracted_register_name, extracted_peripheral)
+    candidate_variants = _name_variants(candidate_register_name)
+
+    if not extracted_variants:
+        extracted_variants = {""}
+    if not candidate_variants:
+        candidate_variants = {""}
+
+    return min(
+        _levenshtein_distance(left, right)
+        for left in extracted_variants
+        for right in candidate_variants
+    )
+
+
 def load_svd_registers(svd_path: str) -> dict[str, RegisterDef]:
     tree = ET.parse(svd_path)
     root = tree.getroot()
@@ -148,18 +215,33 @@ def _best_register_match(
 
     best_key = ""
     best_reg: RegisterDef | None = None
-    best_score = (10**9, 10**18, 10**9)
+    best_score: tuple[int, int, int] | tuple[int, int, int, int] = (10**9, 10**9, 10**18, 10**9)
 
     extracted_peripheral_upper = extracted_peripheral.upper()
 
     for candidate_key, candidate_reg in registers.items():
-        distance = _levenshtein_distance(extracted_register_name, candidate_reg.name)
+        distance = _name_distance(
+            extracted_register_name,
+            candidate_reg.name,
+            extracted_peripheral,
+        )
         peripheral_penalty = 0 if candidate_reg.peripheral.upper() == extracted_peripheral_upper else 1
         if extracted_address is None:
             address_delta = 10**18
         else:
             address_delta = abs(candidate_reg.absolute_address - extracted_address)
-        score = (distance, address_delta, peripheral_penalty)
+
+        # Prefer candidates in the extracted peripheral first, then near the extracted address,
+        # then compare name distance. This prevents query-target drift (e.g., USART2 CR1 -> SYSCFG EXTICR1).
+        if extracted_peripheral_upper and extracted_address is not None:
+            score = (peripheral_penalty, address_delta, distance, len(candidate_reg.name))
+        elif extracted_peripheral_upper:
+            score = (peripheral_penalty, distance, address_delta, len(candidate_reg.name))
+        elif extracted_address is not None:
+            score = (address_delta, distance, peripheral_penalty, len(candidate_reg.name))
+        else:
+            score = (distance, peripheral_penalty, address_delta, len(candidate_reg.name))
+
         if score < best_score:
             best_key = candidate_key
             best_reg = candidate_reg

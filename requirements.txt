@@ -16,3 +16,9 @@ fitz-cuda>=1.24.0  # Uncomment if using CUDA-capable PDF rendering
 
 # Evaluation
 Levenshtein>=0.25.0
+
+# OCR fallback (used when VLM extraction fails)
+rapidocr-onnxruntime>=1.3.24
+
+# UI
+streamlit>=1.35.0

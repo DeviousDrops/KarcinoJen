@@ -5,13 +5,10 @@ retrieval quality, extraction pass/fail, and synthesis output.
 """
 import argparse
 import logging
-import os
 import sys
 import time
 import tempfile
 import traceback
-from urllib import error, request
-from urllib.parse import urlparse
 from pathlib import Path
 from dataclasses import dataclass, field, replace
 
@@ -53,105 +50,17 @@ def _latest_parsed_attempt(attempts):
 
 
 def _build_extraction_fallback_clients(cfg) -> list[VLMClient]:
-    clients: list[VLMClient] = []
-    seen: set[str] = set()
-
-    def _is_endpoint_reachable(endpoint_url: str) -> bool:
-        raw = endpoint_url.strip()
-        if not raw:
-            return False
-        parsed = urlparse(raw)
-        if not parsed.scheme or not parsed.netloc:
-            return False
-        probe_url = f"{parsed.scheme}://{parsed.netloc}"
-        req = request.Request(probe_url, method="GET")
-        try:
-            request.urlopen(req, timeout=1.5)
-            return True
-        except error.HTTPError:
-            # HTTP response means service is reachable.
-            return True
-        except Exception:
-            return False
-
-    def _add(provider_name: str) -> None:
-        if provider_name in seen:
-            return
-        provider_cfg = cfg.providers.get(provider_name)
-        if provider_cfg is None:
-            return
-
-        if provider_name in ("llava", "qwen2_5_vl") and provider_cfg.endpoint_env:
-            endpoint = os.getenv(provider_cfg.endpoint_env, "").strip()
-            if not endpoint:
-                endpoint = "http://localhost:11434/api/generate"
-            if not _is_endpoint_reachable(endpoint):
-                LOGGER.warning(
-                    "Skipping %s fallback: endpoint not reachable at %s",
-                    provider_name,
-                    endpoint,
-                )
-                return
-
-        clients.append(VLMClient(provider_cfg))
-        seen.add(provider_name)
-
-    if cfg.selected_provider == "gemini":
-        # Gemini-only test mode: do not add local VLM fallbacks.
-        return clients
-    elif cfg.selected_provider in ("llava", "qwen2_5_vl"):
-        _add("qwen2_5_vl" if cfg.selected_provider == "llava" else "llava")
-        _add("gemini")
-    elif cfg.selected_provider == "openai":
-        _add("gemini")
-        _add("qwen2_5_vl")
-        _add("llava")
-    elif cfg.selected_provider == "groq":
-        _add("gemini")
-        _add("qwen2_5_vl")
-        _add("llava")
-
-    return clients
+    # Local VLM fallback clients were intentionally removed.
+    # Extraction fallback is OCR-based inside run_stage5_extraction.
+    return []
 
 
 def _build_llm_enrichment_clients(cfg) -> list[VLMClient]:
     clients: list[VLMClient] = []
 
-    def _is_endpoint_reachable(endpoint_url: str) -> bool:
-        raw = endpoint_url.strip()
-        if not raw:
-            return False
-        parsed = urlparse(raw)
-        if not parsed.scheme or not parsed.netloc:
-            return False
-        probe_url = f"{parsed.scheme}://{parsed.netloc}"
-        req = request.Request(probe_url, method="GET")
-        try:
-            request.urlopen(req, timeout=1.5)
-            return True
-        except error.HTTPError:
-            return True
-        except Exception:
-            return False
-
-    for provider_name in ("groq", "ollama", "qwen2_5_vl", "llava"):
+    for provider_name in ("groq", "openai"):
         provider_cfg = cfg.providers.get(provider_name)
         if provider_cfg is not None:
-            if provider_name in ("ollama", "llava", "qwen2_5_vl") and provider_cfg.endpoint_env:
-                endpoint = os.getenv(provider_cfg.endpoint_env, "").strip()
-                if not endpoint:
-                    endpoint = (
-                        "http://localhost:11434/api/chat"
-                        if provider_name == "ollama"
-                        else "http://localhost:11434/api/generate"
-                    )
-                if not _is_endpoint_reachable(endpoint):
-                    LOGGER.warning(
-                        "Skipping %s enrichment client: endpoint not reachable at %s",
-                        provider_name,
-                        endpoint,
-                    )
-                    continue
             clients.append(VLMClient(provider_cfg))
     return clients
 

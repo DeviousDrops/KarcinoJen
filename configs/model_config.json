@@ -19,21 +19,6 @@
       "api_key_env": "OPENAI_API_KEY",
       "base_url": "https://api.openai.com/v1",
       "timeout_seconds": 60
-    },
-    "ollama": {
-      "model": "qwen2.5:7b-instruct",
-      "endpoint_env": "OLLAMA_CHAT_ENDPOINT",
-      "timeout_seconds": 90
-    },
-    "llava": {
-      "model": "llava:latest",
-      "endpoint_env": "OLLAMA_ENDPOINT",
-      "timeout_seconds": 180
-    },
-    "qwen2_5_vl": {
-      "model": "qwen2.5vl:7b",
-      "endpoint_env": "OLLAMA_ENDPOINT",
-      "timeout_seconds": 240
     }
   },
   "extraction": {

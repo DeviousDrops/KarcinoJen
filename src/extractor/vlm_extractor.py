@@ -8,6 +8,7 @@ import time
 from typing import Any
 
 from src.extractor.model_config import ExtractionConfig
+from src.extractor.ocr_fallback import run_ocr_fallback_extraction
 from src.extractor.prompt_bank import COVE_PROMPT_TEMPLATE, PROMPT_V2
 from src.extractor.schema_harness import validate_register_extraction
 from src.extractor.vlm_client import VLMClient
@@ -250,5 +251,47 @@ def run_stage5_extraction(
 
             if schema_result.is_valid and (registers is None or validation_status == "PASS"):
                 return Stage5Result(status="PASS", extraction=response.parsed_json, attempts=attempts)
+
+    ocr_result = run_ocr_fallback_extraction(
+        query=query,
+        page_context=page_context,
+        registers=registers,
+    )
+    if ocr_result.extraction is None:
+        attempts.append(
+            ExtractionAttempt(
+                attempt=len(attempts) + 1,
+                schema_valid=False,
+                schema_errors=[ocr_result.details],
+                validation_status=None,
+                validation_checks=None,
+                raw_text="",
+                parsed_json={},
+            )
+        )
+        return Stage5Result(status="UNCERTAIN", extraction=None, attempts=attempts)
+
+    schema_result = validate_register_extraction(ocr_result.extraction)
+    validation_status = None
+    validation_checks = None
+    if schema_result.is_valid and registers is not None:
+        validation_result = validate_extraction(ocr_result.extraction, registers)
+        validation_status = validation_result.status
+        validation_checks = validation_result.checks
+
+    attempts.append(
+        ExtractionAttempt(
+            attempt=len(attempts) + 1,
+            schema_valid=schema_result.is_valid,
+            schema_errors=schema_result.errors,
+            validation_status=validation_status,
+            validation_checks=validation_checks,
+            raw_text=ocr_result.details,
+            parsed_json=ocr_result.extraction,
+        )
+    )
+
+    if schema_result.is_valid and (registers is None or validation_status == "PASS"):
+        return Stage5Result(status="PASS", extraction=ocr_result.extraction, attempts=attempts)
 
     return Stage5Result(status="UNCERTAIN", extraction=None, attempts=attempts)

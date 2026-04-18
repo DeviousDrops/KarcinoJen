@@ -85,6 +85,21 @@ If you want to change the output location:
 python scripts/run_pipeline.py --datasheet data/datasheets/stm32f401-rm.pdf --query "Extract USART2 CR1 control bits including UE, M, PCE, TE, and RE with bit positions." --outdir generated/my-driver
 ```
 
+## Web UI (Streamlit)
+
+You can run a simple UI that exposes:
+- query input
+- datasheet selector (`data/datasheets/*.pdf`)
+- SVD selector (`data/svd/*.svd`)
+- visible stage progress (indexing, retrieval, extraction, CoVe, synthesis)
+- generated file previews (`driver.h`, `driver.c`, `audit_trace.json`)
+
+Run from repository root:
+
+```powershell
+streamlit run scripts/ui_app.py
+```
+
 ## Notes
 
 - **CUDA Setup**: See [docs/CUDA_COLAB_SETUP.md](docs/CUDA_COLAB_SETUP.md) for detailed GPU acceleration setup and troubleshooting.

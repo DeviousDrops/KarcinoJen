@@ -16,8 +16,6 @@ import sys
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
-from urllib import error, request
-from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -122,67 +120,15 @@ def _run_synthesis(validated_payload: dict[str, object], outdir: Path) -> subpro
 
 
 def _build_extraction_fallback_clients(runtime_cfg) -> list[VLMClient]:
-    clients: list[VLMClient] = []
-    seen: set[str] = set()
-
-    def _is_endpoint_reachable(endpoint_url: str) -> bool:
-        raw = endpoint_url.strip()
-        if not raw:
-            return False
-        parsed = urlparse(raw)
-        if not parsed.scheme or not parsed.netloc:
-            return False
-        probe_url = f"{parsed.scheme}://{parsed.netloc}"
-        req = request.Request(probe_url, method="GET")
-        try:
-            request.urlopen(req, timeout=1.5)
-            return True
-        except error.HTTPError:
-            # Any HTTP response means service is reachable.
-            return True
-        except Exception:
-            return False
-
-    def _add(provider_name: str) -> None:
-        if provider_name in seen:
-            return
-        provider_cfg = runtime_cfg.providers.get(provider_name)
-        if provider_cfg is None:
-            return
-
-        if provider_name in ("llava", "qwen2_5_vl") and provider_cfg.endpoint_env:
-            endpoint = os.getenv(provider_cfg.endpoint_env, "").strip()
-            if not endpoint:
-                endpoint = "http://localhost:11434/api/generate"
-            if not _is_endpoint_reachable(endpoint):
-                print(f"[pipeline] Skipping {provider_name} fallback: endpoint not reachable at {endpoint}")
-                return
-
-        clients.append(VLMClient(provider_cfg))
-        seen.add(provider_name)
-
-    selected = runtime_cfg.selected_provider
-    if selected == "gemini":
-        _add("qwen2_5_vl")
-        _add("llava")
-    elif selected in ("llava", "qwen2_5_vl"):
-        _add("qwen2_5_vl" if selected == "llava" else "llava")
-        _add("gemini")
-    elif selected == "openai":
-        _add("gemini")
-        _add("qwen2_5_vl")
-        _add("llava")
-    elif selected == "groq":
-        _add("gemini")
-        _add("qwen2_5_vl")
-        _add("llava")
-
-    return clients
+    # Local VLM fallbacks were intentionally removed.
+    # Stage 5 now uses OCR fallback when the primary VLM cannot produce
+    # a schema-valid + SVD-valid extraction.
+    return []
 
 
 def _build_enrichment_clients(runtime_cfg) -> list[VLMClient]:
     clients: list[VLMClient] = []
-    for provider_name in ("groq", "ollama", "qwen2_5_vl", "llava"):
+    for provider_name in ("groq", "openai"):
         provider_cfg = runtime_cfg.providers.get(provider_name)
         if provider_cfg is not None:
             clients.append(VLMClient(provider_cfg))

@@ -1,0 +1,39 @@
+{
+  "version": "2.0",
+  "selected_provider": "gemini",
+  "providers": {
+    "gemini": {
+      "model": "gemini-3-flash-preview",
+      "api_key_env": "GEMINI_API_KEY",
+      "base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
+      "timeout_seconds": 180
+    },
+    "groq": {
+      "model": "llama-3.3-70b-versatile",
+      "api_key_env": "GROQ_API_KEY",
+      "base_url": "https://api.groq.com/openai/v1",
+      "timeout_seconds": 60
+    },
+    "openai": {
+      "model": "gpt-4o",
+      "api_key_env": "OPENAI_API_KEY",
+      "base_url": "https://api.openai.com/v1",
+      "timeout_seconds": 60
+    }
+  },
+  "extraction": {
+    "temperature": 0,
+    "max_attempts": 3,
+    "response_format": "json_object"
+  },
+  "retrieval": {
+    "backend": "colpali",
+    "top_k": 5,
+    "lexical_weight": 0.35,
+    "semantic_weight": 0.65,
+    "hex_token_boost": 2.0,
+    "rrf_k": 60,
+    "colpali_model": "vidore/colpali-v1.3-merged",
+    "colpali_index_path": "data/colpali_index"
+  }
+}

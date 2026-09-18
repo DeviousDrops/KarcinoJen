@@ -1,0 +1,34 @@
+{
+  "peripheral": "SYSCFG",
+  "register_name": "EXTICR1",
+  "base_address": "0x40013800",
+  "offset": "0x08",
+  "register_size": 32,
+  "bits": [
+    {
+      "name": "EXTI0",
+      "position": 0,
+      "width": 4,
+      "access": "RW"
+    },
+    {
+      "name": "EXTI1",
+      "position": 4,
+      "width": 4,
+      "access": "RW"
+    },
+    {
+      "name": "EXTI2",
+      "position": 8,
+      "width": 4,
+      "access": "RW"
+    },
+    {
+      "name": "EXTI3",
+      "position": 12,
+      "width": 4,
+      "access": "RW"
+    }
+  ],
+  "timing_constraints": []
+}

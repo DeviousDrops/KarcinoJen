@@ -1,0 +1,94 @@
+{
+  "peripheral": "ADC1",
+  "register_name": "CR1",
+  "base_address": "0x40012000",
+  "offset": "0x04",
+  "register_size": 32,
+  "bits": [
+    {
+      "name": "AWDCH",
+      "position": 0,
+      "width": 5,
+      "access": "RW"
+    },
+    {
+      "name": "EOCIE",
+      "position": 5,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "AWDIE",
+      "position": 6,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "JEOCIE",
+      "position": 7,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "SCAN",
+      "position": 8,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "AWDSGL",
+      "position": 9,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "JAUTO",
+      "position": 10,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "DISCEN",
+      "position": 11,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "JDISCEN",
+      "position": 12,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "DISCNUM",
+      "position": 13,
+      "width": 3,
+      "access": "RW"
+    },
+    {
+      "name": "JAWDEN",
+      "position": 22,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "AWDEN",
+      "position": 23,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "RES",
+      "position": 24,
+      "width": 2,
+      "access": "RW"
+    },
+    {
+      "name": "OVRIE",
+      "position": 26,
+      "width": 1,
+      "access": "RW"
+    }
+  ],
+  "timing_constraints": []
+}

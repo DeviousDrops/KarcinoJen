@@ -46,3 +46,27 @@ coverage/
 
 # Logs
 *.log
+
+# Generated benchmark run artifacts
+data/mcu-bench/runs/*/
+data/mcu-bench/runs/*/**
+!data/mcu-bench/runs/.gitignore
+
+# Generated driver artifacts
+generated/drivers/
+demo_replay/driver.c
+demo_replay/driver.h
+runs/**/driver.c
+runs/**/driver.h
+
+# Local benchmark/runtime outputs
+runs/driver_benchmark/
+runs/underspecified_query_eval/
+generated/ui_runs/
+
+# Retrieval comparison cache
+runs/retrieval_compare/*
+!runs/retrieval_compare/.gitignore
+
+# ColPali index artifacts
+data/colpali_index/

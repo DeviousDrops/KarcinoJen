@@ -1,0 +1,64 @@
+{
+  "peripheral": "RCC",
+  "register_name": "AHB1ENR",
+  "base_address": "0x40023800",
+  "offset": "0x30",
+  "register_size": 32,
+  "bits": [
+    {
+      "name": "GPIOAEN",
+      "position": 0,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "GPIOBEN",
+      "position": 1,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "GPIOCEN",
+      "position": 2,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "GPIODEN",
+      "position": 3,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "GPIOEEN",
+      "position": 4,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "GPIOHEN",
+      "position": 7,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "CRCEN",
+      "position": 12,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "DMA1EN",
+      "position": 21,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "DMA2EN",
+      "position": 22,
+      "width": 1,
+      "access": "RW"
+    }
+  ],
+  "timing_constraints": []
+}

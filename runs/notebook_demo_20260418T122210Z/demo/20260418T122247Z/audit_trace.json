@@ -1,0 +1,56 @@
+{
+  "generated_at": "2026-04-18T12:22:47.529903+00:00",
+  "generator": "KarcinoJen synthesize.py \u2014 Package C Module C1",
+  "input_files": [
+    "C:\\Users\\stard\\AppData\\Local\\Temp\\tmpg07cq8gs\\validated.json"
+  ],
+  "total_symbols": 3,
+  "symbols": [
+    {
+      "symbol": "USART2_CR1_ADDR",
+      "value_hex": "0x4000440CUL",
+      "kind": "register_address",
+      "peripheral": "USART2",
+      "register_name": "CR1",
+      "base_address": "0x40004400",
+      "offset": "0x0C",
+      "source_page_id": "stm32f401-rm_p551",
+      "source_file": "stm32f401-rm.pdf",
+      "validation_status": "PASS",
+      "validation_attempts": 4,
+      "provenance_note": "base_address(0x40004400) + offset(0x0C)"
+    },
+    {
+      "symbol": "USART2_CR1_VALUE_POS",
+      "value_hex": "0U",
+      "kind": "bit_position",
+      "peripheral": "USART2",
+      "register_name": "CR1",
+      "bit_field": "VALUE",
+      "bit_position": 0,
+      "bit_width": 1,
+      "bit_access": "RW",
+      "source_page_id": "stm32f401-rm_p551",
+      "source_file": "stm32f401-rm.pdf",
+      "validation_status": "PASS",
+      "validation_attempts": 4,
+      "provenance_note": "bit position 0 for field VALUE"
+    },
+    {
+      "symbol": "USART2_CR1_VALUE_MASK",
+      "value_hex": "0x00000001UL",
+      "kind": "bit_mask",
+      "peripheral": "USART2",
+      "register_name": "CR1",
+      "bit_field": "VALUE",
+      "bit_position": 0,
+      "bit_width": 1,
+      "bit_access": "RW",
+      "source_page_id": "stm32f401-rm_p551",
+      "source_file": "stm32f401-rm.pdf",
+      "validation_status": "PASS",
+      "validation_attempts": 4,
+      "provenance_note": "((1<<1)-1)<<0 for field VALUE"
+    }
+  ]
+}

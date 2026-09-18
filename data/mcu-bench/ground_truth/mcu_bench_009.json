@@ -1,0 +1,16 @@
+{
+  "peripheral": "TIM2",
+  "register_name": "PSC",
+  "base_address": "0x40000000",
+  "offset": "0x28",
+  "register_size": 32,
+  "bits": [
+    {
+      "name": "PSC",
+      "position": 0,
+      "width": 16,
+      "access": "RW"
+    }
+  ],
+  "timing_constraints": []
+}

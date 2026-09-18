@@ -1,0 +1,94 @@
+{
+  "peripheral": "I2C1",
+  "register_name": "CR1",
+  "base_address": "0x40005400",
+  "offset": "0x00",
+  "register_size": 32,
+  "bits": [
+    {
+      "name": "PE",
+      "position": 0,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "SMBUS",
+      "position": 1,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "SMBTYPE",
+      "position": 3,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "ENARP",
+      "position": 4,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "ENPEC",
+      "position": 5,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "ENGC",
+      "position": 6,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "NOSTRETCH",
+      "position": 7,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "START",
+      "position": 8,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "STOP",
+      "position": 9,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "ACK",
+      "position": 10,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "POS",
+      "position": 11,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "PEC",
+      "position": 12,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "ALERT",
+      "position": 13,
+      "width": 1,
+      "access": "RW"
+    },
+    {
+      "name": "SWRST",
+      "position": 15,
+      "width": 1,
+      "access": "RW"
+    }
+  ],
+  "timing_constraints": []
+}

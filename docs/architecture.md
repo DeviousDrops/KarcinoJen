@@ -6,7 +6,9 @@ KarcinoJen is a visual-first research demo architecture that converts MCU datash
 
 Core principles:
 - No OCR dependency. Datasheets are processed as images.
-- Retrieval combines semantic visual matching and lexical precision.
+- Canonical retrieval uses multimodal page embeddings (ColPali MaxSim) fused with lexical evidence.
+- Lexical-first retrieval exists only as an ablation and low-resource fallback profile.
+- The VLM receives page images; page text is auxiliary context rather than the primary evidence channel.
 - Validation is deterministic and SVD-grounded.
 - Timing constraints are optional in the demo and validated when available.
 - Generation is fail-closed for core register outputs.
@@ -29,13 +31,14 @@ Core principles:
 
 1. PDF datasheet pages are rendered to 300 dpi images.
 2. ColPali produces patch-level 128-d embeddings per page.
-3. ChromaDB stores per-page multi-vector embeddings, page image blob, and metadata.
-4. Query-time hybrid retrieval runs late interaction and BM25 in parallel.
-5. Top-k page images are sent to a VLM with strict JSON extraction prompt for register and timing facts.
-6. Extracted JSON is validated against CMSIS-SVD checks plus deterministic timing checks.
-7. Failures trigger grounded CoVe re-prompt with exact mismatch context (max 3 tries).
-8. Validated JSON feeds a synthesis node that generates C files and audit trace.
-9. PASS@K and a small set of demo metrics are computed for evaluation.
+3. ColPali local index files store page-level metadata and retrieval artifacts.
+4. Query-time hybrid retrieval runs late interaction (MaxSim) and BM25 in parallel.
+5. Reciprocal Rank Fusion selects top-k candidate pages.
+6. Candidate page images are supplied to a VLM with strict JSON extraction prompts.
+7. Extracted JSON is validated against CMSIS-SVD checks plus deterministic timing checks.
+8. Failures trigger grounded CoVe re-prompt with exact mismatch context (max 3 tries).
+9. Validated JSON is synthesized by a text LLM into C files and audit trace.
+10. PASS@K and demo metrics are computed for evaluation.
 
 ## 3. Stage Contracts
 
@@ -60,7 +63,7 @@ Processing:
 Output:
 - `PageEmbeddingSet` (variable-length multi-vector per page).
 
-### Stage 3: ChromaDB Visual Index (offline)
+### Stage 3: ColPali Visual Index Store (offline)
 Input:
 - `PageEmbeddingSet`, page image, metadata.
 
@@ -70,7 +73,7 @@ Storage per document entry:
 - Metadata: source filename, page number, peripheral keywords.
 
 Output:
-- Persistent visual index ready for query-time retrieval.
+- Persistent local visual index ready for query-time retrieval.
 
 ### Stage 4: Hybrid Retrieval (online)
 Input:
@@ -91,8 +94,8 @@ Input:
 - Retrieved page images and extraction prompt.
 
 Model options:
-- GPT-4o (or equivalent frontier VLM API) as primary benchmark model.
-- LLaVA as optional open-model reference.
+- Gemini 2.5 Flash (or equivalent frontier VLM API) as primary benchmark model.
+- LLaVA/Qwen2.5-VL as optional open-model references and failover.
 
 Output format (strict JSON-only):
 ```json
@@ -152,9 +155,13 @@ Termination:
 - Success: pass to synthesis.
 - Fail after 3 attempts: emit `UNCERTAIN`, route to human review.
 
-### Stage 8: Code Synthesis Agent (online)
+### Stage 8: Code Synthesis and Enrichment Agent (online)
 Input:
 - Validated register JSON only.
+
+Model options:
+- Groq-hosted Llama family models for fast text synthesis.
+- Local text models (Ollama) as fallback.
 
 Output artifacts:
 - `driver.h`: register addresses/bit masks and declarations.
@@ -227,13 +234,18 @@ Final deliverables:
 ## 5. Orchestration Logic
 
 Pseudo-flow:
-1. Retrieve top-k pages.
+1. Retrieve top-k pages with ColPali MaxSim plus lexical fusion.
 2. Extract JSON with VLM.
 3. Validate register facts against SVD and timing facts with deterministic checks.
 4. If fail and attempts < 3, run CoVe re-prompt and retry.
 5. If pass, synthesize code + audit trace.
 6. If still fail after 3 attempts, emit UNCERTAIN.
 7. If timing extraction is enabled and remains unverified, mark timing as uncertain in report.
+
+Fallback profile:
+- If ColPali is unavailable (for example, local VRAM limits), retrieval falls back to lexical.
+- In fallback mode, top-ranked pages are still rendered as images before VLM extraction.
+- This fallback preserves multimodal extraction behavior but is treated as a resource-constrained ablation, not the canonical architecture.
 
 ## 6. Demo Constraints and Non-Functional Targets
 
@@ -278,6 +290,20 @@ For each category capture whether:
 - Performance is best-effort for the demo; hard latency SLOs are out of scope.
 - Observability: keep stage logs and mismatch taxonomy sufficient for paper analysis.
 
+### 6.5 Execution Profiles
+
+Profile A: Canonical paper profile
+- Retrieval backend: colpali (MaxSim plus lexical fusion).
+- VLM extraction: Gemini primary, with VLM-compatible fallback clients.
+- Synthesis/enrichment: text LLMs (Groq primary, local fallback).
+- Recommended runtime: GPU-backed environment (for example, Google Colab).
+
+Profile B: Resource-constrained profile
+- Retrieval backend: lexical.
+- Retrieved pages are rendered to images before VLM extraction.
+- Used for ablation, debugging, and low-resource runs.
+- Not used as the primary evidence path for architecture claims.
+
 ## 7. Decision Log
 
 | ID | Decision | Rationale | Status |
@@ -292,6 +318,10 @@ For each category capture whether:
 | ADR-008 | No fine-tuning in one-week timeline | Avoids derailment and keeps claim focused on architecture | Accepted |
 | ADR-009 | MCU-Bench benchmark release | Provides a reusable dataset contribution for the community | Accepted |
 | ADR-010 | Mandatory baseline and ablation comparison | Demonstrates causal impact of validation and CoVe stages | Accepted |
+| ADR-011 | Modality split by stage | Use VLMs for extraction and text LLMs for synthesis/enrichment | Accepted |
+| ADR-012 | ColPali as canonical retrieval path | Preserve visual semantics before extraction | Accepted |
+| ADR-013 | Lexical retrieval as fallback profile | Enable runs under constrained hardware without changing extractor stage contracts | Accepted |
+| ADR-014 | Colab GPU as recommended demo runtime | Reduces local VRAM blockers for ColPali indexing and retrieval | Accepted |
 
 ## 8. Open Questions
 

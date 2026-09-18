@@ -1,0 +1,40 @@
+{
+  "peripheral": "UART0",
+  "register_name": "UARTDR",
+  "base_address": "0x40034000",
+  "offset": "0x00",
+  "register_size": 32,
+  "bits": [
+    {
+      "name": "DATA",
+      "position": 0,
+      "width": 8,
+      "access": "RW"
+    },
+    {
+      "name": "FE",
+      "position": 8,
+      "width": 1,
+      "access": "RO"
+    },
+    {
+      "name": "PE",
+      "position": 9,
+      "width": 1,
+      "access": "RO"
+    },
+    {
+      "name": "BE",
+      "position": 10,
+      "width": 1,
+      "access": "RO"
+    },
+    {
+      "name": "OE",
+      "position": 11,
+      "width": 1,
+      "access": "RO"
+    }
+  ],
+  "timing_constraints": []
+}

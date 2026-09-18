@@ -1,0 +1,420 @@
+"""Deterministic SVD-grounded validator for extracted register JSON."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Any
+import xml.etree.ElementTree as ET
+
+
+def _parse_int(value: str | int) -> int:
+    if isinstance(value, int):
+        return value
+    text = str(value).strip()
+    return int(text, 0)
+
+
+@dataclass(frozen=True)
+class RegisterDef:
+    name: str
+    peripheral: str
+    base_address: int
+    offset: int
+    size: int
+
+    @property
+    def absolute_address(self) -> int:
+        return self.base_address + self.offset
+
+
+@dataclass(frozen=True)
+class CheckResult:
+    ok: bool
+    details: dict[str, Any]
+
+
+@dataclass(frozen=True)
+class ValidationResult:
+    status: str
+    checks: dict[str, dict[str, Any]]
+    message: str
+
+
+def _levenshtein_distance(a: str, b: str) -> int:
+    if a == b:
+        return 0
+    if not a:
+        return len(b)
+    if not b:
+        return len(a)
+
+    previous = list(range(len(b) + 1))
+    for i, char_a in enumerate(a, start=1):
+        current = [i]
+        for j, char_b in enumerate(b, start=1):
+            insertions = previous[j] + 1
+            deletions = current[j - 1] + 1
+            substitutions = previous[j - 1] + (0 if char_a == char_b else 1)
+            current.append(min(insertions, deletions, substitutions))
+        previous = current
+
+    return previous[-1]
+
+
+def _to_alnum_upper(value: str) -> str:
+    return "".join(char for char in value.upper() if char.isalnum())
+
+
+def _name_variants(name: str, peripheral_hint: str = "") -> set[str]:
+    """Generate robust name variants for fuzzy matching.
+
+    Examples:
+    - USART_CR1 -> {"USARTCR1", "USART", "CR1"}
+    - CR1 -> {"CR1"}
+    - If peripheral_hint is USART2, also adds suffix-stripped variants like CR1
+      when a variant starts with USART2/USART.
+    """
+    text = str(name).strip().upper()
+    variants: set[str] = set()
+
+    compact = _to_alnum_upper(text)
+    if compact:
+        variants.add(compact)
+
+    token = ""
+    for char in text:
+        if char.isalnum():
+            token += char
+            continue
+        if token:
+            variants.add(_to_alnum_upper(token))
+            token = ""
+    if token:
+        variants.add(_to_alnum_upper(token))
+
+    hint = _to_alnum_upper(peripheral_hint)
+    hint_variants: set[str] = set()
+    if hint:
+        hint_variants.add(hint)
+        hint_alpha = hint.rstrip("0123456789")
+        if hint_alpha:
+            hint_variants.add(hint_alpha)
+
+    for variant in list(variants):
+        for hint_variant in hint_variants:
+            if len(variant) > len(hint_variant) + 1 and variant.startswith(hint_variant):
+                variants.add(variant[len(hint_variant) :])
+
+    return {variant for variant in variants if variant}
+
+
+def _name_distance(
+    extracted_register_name: str,
+    candidate_register_name: str,
+    extracted_peripheral: str,
+) -> int:
+    extracted_variants = _name_variants(extracted_register_name, extracted_peripheral)
+    candidate_variants = _name_variants(candidate_register_name)
+
+    if not extracted_variants:
+        extracted_variants = {""}
+    if not candidate_variants:
+        candidate_variants = {""}
+
+    return min(
+        _levenshtein_distance(left, right)
+        for left in extracted_variants
+        for right in candidate_variants
+    )
+
+
+def load_svd_registers(svd_path: str) -> dict[str, RegisterDef]:
+    tree = ET.parse(svd_path)
+    root = tree.getroot()
+
+    register_map: dict[str, RegisterDef] = {}
+
+    peripherals: dict[str, ET.Element] = {}
+    for peripheral in root.findall(".//peripheral"):
+        peripheral_name = peripheral.findtext("name", default="")
+        if peripheral_name:
+            peripherals[peripheral_name] = peripheral
+
+    template_cache: dict[str, list[dict[str, int | str]]] = {}
+
+    def _own_register_templates(peripheral_elem: ET.Element) -> list[dict[str, int | str]]:
+        templates: list[dict[str, int | str]] = []
+        for register in peripheral_elem.findall(".//register"):
+            register_name = register.findtext("name", default="")
+            if not register_name:
+                continue
+
+            offset_text = register.findtext("addressOffset", default="0x0")
+            size_text = register.findtext("size", default="32")
+            templates.append(
+                {
+                    "name": register_name,
+                    "offset": _parse_int(offset_text),
+                    "size": _parse_int(size_text),
+                }
+            )
+        return templates
+
+    def _resolve_templates(peripheral_name: str, stack: tuple[str, ...] = ()) -> list[dict[str, int | str]]:
+        if peripheral_name in template_cache:
+            return template_cache[peripheral_name]
+
+        if peripheral_name in stack:
+            # Defensive fallback for malformed SVD cycles.
+            template_cache[peripheral_name] = []
+            return template_cache[peripheral_name]
+
+        peripheral_elem = peripherals.get(peripheral_name)
+        if peripheral_elem is None:
+            template_cache[peripheral_name] = []
+            return template_cache[peripheral_name]
+
+        merged: dict[str, dict[str, int | str]] = {}
+
+        parent_name = peripheral_elem.get("derivedFrom")
+        if parent_name:
+            for parent_template in _resolve_templates(parent_name, stack + (peripheral_name,)):
+                merged[str(parent_template["name"])] = dict(parent_template)
+
+        for own_template in _own_register_templates(peripheral_elem):
+            merged[str(own_template["name"])] = own_template
+
+        resolved = list(merged.values())
+        template_cache[peripheral_name] = resolved
+        return resolved
+
+    for peripheral_name, peripheral in peripherals.items():
+        base_address_text = peripheral.findtext("baseAddress", default="0x0")
+        base_address = _parse_int(base_address_text)
+
+        for template in _resolve_templates(peripheral_name):
+            register_name = str(template["name"])
+            register_key = f"{peripheral_name}.{register_name}"
+            register_map[register_key] = RegisterDef(
+                name=register_name,
+                peripheral=peripheral_name,
+                base_address=base_address,
+                offset=int(template["offset"]),
+                size=int(template["size"]),
+            )
+
+    return register_map
+
+
+def _best_register_match(
+    extracted_register_name: str,
+    extracted_peripheral: str,
+    extracted_address: int | None,
+    registers: dict[str, RegisterDef],
+) -> tuple[str, RegisterDef, int]:
+
+    best_key = ""
+    best_reg: RegisterDef | None = None
+    best_score: tuple[int, int, int] | tuple[int, int, int, int] = (10**9, 10**9, 10**18, 10**9)
+
+    extracted_peripheral_upper = extracted_peripheral.upper()
+
+    for candidate_key, candidate_reg in registers.items():
+        distance = _name_distance(
+            extracted_register_name,
+            candidate_reg.name,
+            extracted_peripheral,
+        )
+        peripheral_penalty = 0 if candidate_reg.peripheral.upper() == extracted_peripheral_upper else 1
+        if extracted_address is None:
+            address_delta = 10**18
+        else:
+            address_delta = abs(candidate_reg.absolute_address - extracted_address)
+
+        # Prefer candidates in the extracted peripheral first, then near the extracted address,
+        # then compare name distance. This prevents query-target drift (e.g., USART2 CR1 -> SYSCFG EXTICR1).
+        if extracted_peripheral_upper and extracted_address is not None:
+            score = (peripheral_penalty, address_delta, distance, len(candidate_reg.name))
+        elif extracted_peripheral_upper:
+            score = (peripheral_penalty, distance, address_delta, len(candidate_reg.name))
+        elif extracted_address is not None:
+            score = (address_delta, distance, peripheral_penalty, len(candidate_reg.name))
+        else:
+            score = (distance, peripheral_penalty, address_delta, len(candidate_reg.name))
+
+        if score < best_score:
+            best_key = candidate_key
+            best_reg = candidate_reg
+            best_score = score
+
+    if best_reg is None:
+        raise ValueError("SVD register map is empty")
+
+    return best_key, best_reg, best_score[0]
+
+
+def _normalize_timing_value(value: float, unit: str) -> float:
+    unit_l = unit.strip().lower()
+    factors = {
+        "s": 1.0,
+        "ms": 1e-3,
+        "us": 1e-6,
+        "ns": 1e-9,
+        "ps": 1e-12,
+        "hz": 1.0,
+        "khz": 1e3,
+        "mhz": 1e6,
+        "ghz": 1e9,
+    }
+    if unit_l not in factors:
+        raise ValueError(f"Unsupported timing unit: {unit}")
+    return value * factors[unit_l]
+
+
+def _validate_timing_consistency(extraction: dict[str, Any]) -> CheckResult:
+    constraints = extraction.get("timing_constraints")
+    if constraints is None:
+        return CheckResult(True, {"ok": True, "reason": "timing constraints missing (optional)"})
+
+    if not isinstance(constraints, list):
+        return CheckResult(False, {"ok": False, "reason": "timing_constraints must be an array"})
+
+    for index, item in enumerate(constraints):
+        if not isinstance(item, dict):
+            return CheckResult(False, {"ok": False, "reason": f"timing_constraints[{index}] is not an object"})
+
+        unit = item.get("unit")
+        if not isinstance(unit, str) or not unit.strip():
+            return CheckResult(False, {"ok": False, "reason": f"timing_constraints[{index}] missing unit"})
+
+        present_values: dict[str, float] = {}
+        for key in ("min", "typ", "max"):
+            value = item.get(key)
+            if value is not None:
+                if not isinstance(value, (int, float)):
+                    return CheckResult(
+                        False,
+                        {"ok": False, "reason": f"timing_constraints[{index}].{key} must be numeric or null"},
+                    )
+                present_values[key] = _normalize_timing_value(float(value), unit)
+
+        if "min" in present_values and "typ" in present_values and present_values["min"] > present_values["typ"]:
+            return CheckResult(False, {"ok": False, "reason": f"min greater than typ in timing_constraints[{index}]"})
+
+        if "typ" in present_values and "max" in present_values and present_values["typ"] > present_values["max"]:
+            return CheckResult(False, {"ok": False, "reason": f"typ greater than max in timing_constraints[{index}]"})
+
+        if "min" in present_values and "max" in present_values and present_values["min"] > present_values["max"]:
+            return CheckResult(False, {"ok": False, "reason": f"min greater than max in timing_constraints[{index}]"})
+
+    return CheckResult(True, {"ok": True})
+
+
+def validate_extraction(
+    extraction: dict[str, Any], registers: dict[str, RegisterDef], *, name_distance_limit: int = 2
+) -> ValidationResult:
+    extracted_name = str(extraction.get("register_name", ""))
+    extracted_peripheral = str(extraction.get("peripheral", ""))
+    extracted_address: int | None = None
+    try:
+        extracted_address = int(str(extraction.get("base_address", "0x0")), 16) + int(
+            str(extraction.get("offset", "0x0")), 16
+        )
+    except ValueError:
+        extracted_address = None
+    best_key, best_register, distance = _best_register_match(
+        extracted_name,
+        extracted_peripheral,
+        extracted_address,
+        registers,
+    )
+
+    checks: dict[str, dict[str, Any]] = {}
+
+    peripheral_match = (
+        not extracted_peripheral
+        or best_register.peripheral.upper() == extracted_peripheral.upper()
+    )
+    name_ok = distance <= name_distance_limit and peripheral_match
+    checks["name_fuzzy"] = {
+        "ok": name_ok,
+        "expected": best_register.name,
+        "expected_peripheral": best_register.peripheral,
+        "actual": extracted_name,
+        "actual_peripheral": extracted_peripheral,
+        "match_key": best_key,
+        "peripheral_match": peripheral_match,
+        "distance": distance,
+        "threshold": name_distance_limit,
+    }
+
+    try:
+        base_address = int(str(extraction.get("base_address", "0x0")), 16)
+        offset = int(str(extraction.get("offset", "0x0")), 16)
+        resolved_address = base_address + offset
+        expected_address = best_register.absolute_address
+        address_ok = resolved_address == expected_address
+        checks["address_range"] = {
+            "ok": address_ok,
+            "expected": f"0x{expected_address:08X}",
+            "actual": f"0x{resolved_address:08X}",
+            "expected_base_address": f"0x{best_register.base_address:08X}",
+            "expected_offset": f"0x{best_register.offset:02X}",
+            "peripheral": best_register.peripheral,
+        }
+    except ValueError:
+        checks["address_range"] = {
+            "ok": False,
+            "reason": "base_address or offset is not a valid hex string",
+        }
+
+    bits = extraction.get("bits", [])
+    seen_positions: set[int] = set()
+    arithmetic_ok = True
+    arithmetic_reasons: list[str] = []
+
+    if not isinstance(bits, list):
+        arithmetic_ok = False
+        arithmetic_reasons.append("bits is not an array")
+    else:
+        for idx, bit in enumerate(bits):
+            if not isinstance(bit, dict):
+                arithmetic_ok = False
+                arithmetic_reasons.append(f"bits[{idx}] is not an object")
+                continue
+
+            position = bit.get("position")
+            width = bit.get("width")
+            if not isinstance(position, int) or not isinstance(width, int):
+                arithmetic_ok = False
+                arithmetic_reasons.append(f"bits[{idx}] has non-integer position or width")
+                continue
+
+            if position + width > best_register.size:
+                arithmetic_ok = False
+                arithmetic_reasons.append(
+                    f"bits[{idx}] exceeds register size {best_register.size}"
+                )
+
+            for current_position in range(position, position + width):
+                if current_position in seen_positions:
+                    arithmetic_ok = False
+                    arithmetic_reasons.append(
+                        f"bits[{idx}] overlaps at bit position {current_position}"
+                    )
+                seen_positions.add(current_position)
+
+    checks["bit_arithmetic"] = {
+        "ok": arithmetic_ok,
+        "register_size": best_register.size,
+        "reason": "; ".join(arithmetic_reasons) if arithmetic_reasons else "",
+    }
+
+    timing_check = _validate_timing_consistency(extraction)
+    checks["timing_consistency"] = timing_check.details
+
+    failed_checks = [name for name, details in checks.items() if not bool(details.get("ok"))]
+    status = "PASS" if not failed_checks else "FAIL"
+    message = "validation passed" if status == "PASS" else f"failed checks: {', '.join(failed_checks)}"
+
+    return ValidationResult(status=status, checks=checks, message=message)
